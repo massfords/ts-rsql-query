@@ -101,9 +101,10 @@ const result = toSql(rsql, context);
 if (result.isValid) {
     console.log(result.sql);
     /*
-        u.active=true and u.pointBalance>10
+        u.active=$1 and u.pointBalance>$2
      */
     const fullQuery = `${query} where ${result.sql}`;
+    // context.values array contains ["true", "10"]
     const rows = await db.manyOrNone(fullQuery, context.values);
 }
 ```
