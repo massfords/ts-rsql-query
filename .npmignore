@@ -1,0 +1,10 @@
+node_modules
+.DS_Store
+.idea
+docs
+tmp
+__tests__
+.github
+*.tgz
+*.test.js
+**/*.ts
