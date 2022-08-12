@@ -6,8 +6,7 @@
 
 ## What does it do?
 
-Transforms the AST produced from [ts-rsql](https://github.com/trevor-leach/ts-rsql) into a SQL predicate
-that is suitable to append to a base query and execute.
+Transforms the AST produced from [ts-rsql](https://github.com/trevor-leach/ts-rsql) into a SQL predicate that is suitable to append to a base query and execute. 
 
 Consider a service that lists players in a game based on the number of points they have in descending order and then alphabetically by name.
 ```sql
@@ -15,11 +14,28 @@ select * from tsrsql.users u
 order by u.pointbalance DESC, u.lastname, u.firstname, u.id
 ```
 
+### Context and configuration for the SQL transform
+
+| SqlContext Field                                    | Description                                                                                                                    | 
+|-----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| values: Value[]                                     | new array per query, typically just `[]`                                                                                       | 
+| keyset: string or string[] or null                  | built from the last row of the previous page and shared as an encoded value with the client to pass back to get the next page. | 
+| selectors: Record<string, string or SelectorConfig> | static config that is either inlined or declared at file scope                                                                 | 
+| lax?: true                                          | if present, selectors are not required to be defined, but are enforced if defined                                              | 
+
+> Values extracted from the filter and order by handling are appended to this array. 
+> The length after adding a value determines the offset for its query parameter ($1, $2, etc).
+> 
+> Note that if the base query already has query parameters then the values 
+> array should contain those parameters to ensure any newly generated 
+> parameters do not conflict.
+> 
+
 ### Filtering
  
 The query builder leverages the RSQL expression parser from [ts-rsql](https://github.com/trevor-leach/ts-rsql) and transforms the resulting AST to SQL.
 
-| RSQL         | SQLContext Selector Config                          | SQL Output          | Values  |
+| RSQL         | SqlContext Selector Config                          | SQL Output          | Values  |
 |--------------|-----------------------------------------------------|---------------------|---------|
 | `points>500` | none                                                | `points>$1`         | `[500]` |
 | `points>42`  | `{ points: u.pointbalance }`                        | `u.pointbalance=$1` | `[42]`  |
@@ -34,7 +50,7 @@ The query builder leverages the RSQL expression parser from [ts-rsql](https://gi
 ### Sorting
 The order by expression builder leverages the sort expression parser from [ts-rsql](https://github.com/trevor-leach/ts-rsql) and transforms the resulting AST to SQL. 
 
-| Sort Expressions                   | SQLContext Selector Config     | SQL Output                                                |
+| Sort Expressions                   | SqlContext Selector Config     | SQL Output                                                |
 |------------------------------------|--------------------------------|-----------------------------------------------------------|
 | `-points, lastName, firstName, id` | none                           | `order by points DESC, lastName, firstName, id`           |
 | `-points, lastName, firstName, id` | `{ points: "u.pointbalance" }` | `order by u.pointbalance DESC, lastName, firstName, u.id` |
@@ -77,7 +93,7 @@ const context: SqlContext = {
 ```typescript
 const context: SqlContext = {
     values: [],
-    keyset: "base64-encoded-json-array....",
+    keyset: "base64-encoded-json-array....",  // <--- encoded values of the last row of the previous page
     selectors: {
         points: {
             sql: "u.pointBalance",
