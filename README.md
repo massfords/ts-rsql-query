@@ -2,7 +2,6 @@
 
 [![license](https://img.shields.io/badge/MIT-blue.svg)](https://github.com/massfords/ts-rsql-to-sql/blob/master/LICENSE)
 [![npm version](https://badge.fury.io/js/ts-rsql-to-sql.svg)](https://badge.fury.io/js/ts-rsql-to-sql)
-
 [![NPM](https://nodei.co/npm/ts-rsql-to-sql.png?stars=true)](https://www.npmjs.com/package/ts-rsql-to-sql)
 
 ## What does it do?
@@ -10,113 +9,110 @@
 Transforms the AST produced from [ts-rsql](https://github.com/trevor-leach/ts-rsql) into a SQL predicate
 that is suitable to append to a base query and execute.
 
-### Example in lax mode without restrictions on the selectors or values
-
-```typescript
-import {parseRsql} from "ts-rsql";
-import {toSql} from "./to-sql";
-
-const ast = parseRsql("active=true;points=gt=10");
-const context: SqlContext = {values: [], lax: true};
-const result = toSql(rsql, context);
-if (result.isValid) {
-    console.log(result.sql);
-    /*
-        active=$1 and points>$2
-     */
-} else {
-    console.log(result.err);
-}
+Consider a service that lists players in a game based on the number of points they have in descending order and then alphabetically by name.
+```sql
+select * from tsrsql.users u
+order by u.pointbalance DESC, u.lastname, u.firstname, u.id
 ```
 
-### Example in strict mode with mappings to sql defined for the selectors
+### Filtering
+ 
+The query builder leverages the RSQL expression parser from [ts-rsql](https://github.com/trevor-leach/ts-rsql) and transforms the resulting AST to SQL.
 
+| RSQL         | SQLContext Selector Config                          | SQL Output          | Values  |
+|--------------|-----------------------------------------------------|---------------------|---------|
+| `points>500` | none                                                | `points>$1`         | `[500]` |
+| `points>42`  | `{ points: u.pointbalance }`                        | `u.pointbalance=$1` | `[42]`  |
+| `points>42`  | `{ points: { type: integer, sql: u.pointbalance} }` | `u.pointbalance=$1` | `[42]`  |
+| `points>abc` | `{ points: { type: integer, sql: u.pointbalance} }` | validation error    |         |
+
+- Output is a parameterized query
+- The building of the parameterized query appends to the Values array.
+- Selector configuration is either a string or object.
+- If the type of the selector is known then the value is validated. 
+
+### Sorting
+The order by expression builder leverages the sort expression parser from [ts-rsql](https://github.com/trevor-leach/ts-rsql) and transforms the resulting AST to SQL. 
+
+| Sort Expressions                   | SQLContext Selector Config     | SQL Output                                                |
+|------------------------------------|--------------------------------|-----------------------------------------------------------|
+| `-points, lastName, firstName, id` | none                           | `order by points DESC, lastName, firstName, id`           |
+| `-points, lastName, firstName, id` | `{ points: "u.pointbalance" }` | `order by u.pointbalance DESC, lastName, firstName, u.id` |
+
+> The order by expression builder use the same configuration in the SQLContext for its selectors. 
+
+### Filtering, Sorting, and Pagination
+
+This library implements the [Seek Method](https://use-the-index-luke.com/sql/partial-results/fetch-next-page) for its pagination.
+
+The target SQL dialect is Postgresql since it supports the SQL92 "row values" syntax for a SELECT.
+
+#### SqlContext for the first page of results
+
+**Sort Expression**: `-points, lastName, firstName, id`
+
+**SQLContext**
 ```typescript
-import {parseRsql} from "ts-rsql";
-import {toSql} from "./to-sql";
-
-const ast = parseRsql("active=true;points=gt=10");
 const context: SqlContext = {
-    values: [], selectors: {
-        active: {
-            sql: "u.active",
-            type: "boolean"
-        },
+    values: [],
+    selectors: {
         points: {
             sql: "u.pointBalance",
             type: "integer"
-        }
+        },
+        lastName: "u.lastName",
+        firstName: "u.firstName",
+        id: "u.id"
     }
 };
-const result = toSql(rsql, context);
-if (result.isValid) {
-    console.log(result.sql);
-    /*
-        u.active=$1 and u.pointBalance>$2
-     */
-} else {
-    console.log(result.err);
-}
 ```
 
-## How it works
+**SQL Output**: `order by u.pointbalance DESC, u.lastName, u.firstName, u.id`
 
-- accepts the AST from the ts-rsql
-- walk the AST and builds the sql predicate
-    - default behavior is literal selector value as the left-hand (**LHS**) side expression 
-    - optional config may map the selector to **LHS** expr
-    - builds string and appends values to an array
+#### SqlContext for the page after the **keyset** row
 
-- walk the AST and validate each selector name
-    - optional config defines valid selectors
-    - if selector not found, then it's invalid
-    - if selector defines the type, then validate the type
+**Sort Expression**: `-points, lastName, firstName, id`
+
+**SQLContext**
+```typescript
+const context: SqlContext = {
+    values: [],
+    keyset: "base64-encoded-json-array....",
+    selectors: {
+        points: {
+            sql: "u.pointBalance",
+            type: "integer"
+        },
+        lastName: "u.lastName",
+        firstName: "u.firstName",
+        id: "u.id"
+    }
+};
+```
+
+**SQL Output**:
+```
+(u.pointbalance,u.lastName,u.firstName,u.id)<($1,$2,$3,$4)
+order by u.pointbalance DESC, u.lastName, u.firstName, u.id
+```
+- output includes "row-values" syntax to implement the seek.
+- The values from the encoded **keyset** parameter are appended to the values array
+
+#### Creating the **keyset** value
+Using the same sort order example of `-points,lastName,firstName,id`:
+
+```typescript
+import {Base64} from "js-base64";
+
+// the values in the array come from the last row for the current page. 
+// currently, there's nothing in this library that helps build this.
+const keyset = Base64.encodeURI(JSON.stringify(["2","Banana","Bob","ba851221-c545-461f-9427-d708829f84b1"]));
+```
 
 ## Building and running a query
 
 This lib builds the SQL predicate, not the full query. See `to-sql.it.ts` for how complete queries are built and run.
 
-### Example with full query
-
-```typescript
-import {parseRsql} from "ts-rsql";
-import {toSql} from "./to-sql";
-
-const query = `select name, email, active, dob, tier from tsrsql.users u`;
-
-const ast = parseRsql("active=true;points=gt=10");
-const context: SqlContext = {
-    values: [], selectors: {
-        active: {
-            sql: "u.active",
-            type: "boolean"
-        },
-        points: {
-            sql: "u.pointBalance",
-            type: "integer"
-        }
-    }
-};
-const result = toSql(rsql, context);
-if (result.isValid) {
-    console.log(result.sql);
-    /*
-        u.active=$1 and u.pointBalance>$2
-     */
-    const fullQuery = `${query} where ${result.sql}`;
-    // context.values array contains ["true", "10"]
-    const rows = await db.manyOrNone(fullQuery, context.values);
-}
-```
-
-## Pagination
-
-TBD
-
-## Ordering
-
-TBD
 
 ## License
-
 See [LICENSE](./LICENSE).
