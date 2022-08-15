@@ -20,10 +20,10 @@ const formatSelector = (context: SqlContext, selector: string): string => {
 };
 
 export const toSql = (
-  input: ASTNode | string,
+  input: ASTNode | string | null,
   context: SqlContext
 ): { isValid: true; sql: string } | { isValid: false; err: string } => {
-  if (input === "") {
+  if (!input || input === "") {
     return { isValid: true, sql: "" };
   }
   const ast: ASTNode = typeof input === "string" ? parseRsql(input) : input;

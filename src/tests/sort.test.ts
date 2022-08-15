@@ -1,8 +1,7 @@
-import { toOrderBy } from "../sort";
+import { toKeySet, toOrderBy } from "../sort";
 import { SqlContext } from "../context";
 import { TestSelectors } from "./fixture";
 import invariant from "tiny-invariant";
-import { Base64 } from "js-base64";
 
 describe("sorting tests", () => {
   const inputs: Array<{
@@ -48,7 +47,7 @@ describe("sorting tests", () => {
         const context: SqlContext = {
           values: [],
           selectors: TestSelectors,
-          keyset: Base64.encodeURI(JSON.stringify(paging.keyset)),
+          keyset: toKeySet(paging.keyset),
         };
         const result = toOrderBy(sort, context);
         invariant(result.isValid);

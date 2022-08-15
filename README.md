@@ -10,7 +10,15 @@ Transforms the AST produced from [ts-rsql](https://github.com/trevor-leach/ts-rs
 
 Consider a service that lists players in a game based on the number of points they have in descending order and then alphabetically by name.
 ```sql
-select * from tsrsql.users u
+select u.firstName    as "firstName",
+       u.lastName     as "lastName",
+       u.email,
+       u.active,
+       u.dob,
+       u.tier,
+       u.id,
+       u.pointbalance as points
+from tsrsql.users u
 order by u.pointbalance DESC, u.lastname, u.firstname, u.id
 ```
 
@@ -127,7 +135,7 @@ const keyset = Base64.encodeURI(JSON.stringify(["2","Banana","Bob","ba851221-c54
 
 ## Building and running a query
 
-This lib builds the SQL predicate, not the full query. See `to-sql.it.ts` for how complete queries are built and run.
+This lib builds the SQL predicate, not the full query. See `live-db.it.ts` for how complete queries are built and run.
 
 
 ## License
