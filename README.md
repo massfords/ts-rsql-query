@@ -22,12 +22,18 @@ from tsrsql.users u
 order by u.pointbalance DESC, u.lastname, u.firstname, u.id
 ```
 
+| points | lastName | firstName | email               | active | dob        | tier   | id                                   |
+|:-------|:---------|:----------|:--------------------|:-------|:-----------|:-------|:-------------------------------------|
+| 3      | Cupcake  | Charlie   | charlie@example.com | true   | 1960-03-05 | GOLD   | 0399c724-5829-5458-b7ac-ac6a298e0e4b |
+| 2      | Banana   | Bob       | bob@example.com     | true   | 1960-02-04 | SILVER | 7139e81e-dc13-54d1-8c10-6fe6f7bfb34e |
+| 1      | Apple    | Alice     | alice@example.com   | false  | 1960-01-03 | BRONZE | 7fd757a2-2173-5a60-8d25-615994740358 |
+
+
 ### Context and configuration for the SQL transform
 
 | SqlContext Field                                    | Description                                                                                                                    | 
 |-----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
 | values: Value[]                                     | new array per query, typically just `[]`                                                                                       | 
-| keyset: string or string[] or null                  | built from the last row of the previous page and shared as an encoded value with the client to pass back to get the next page. | 
 | selectors: Record<string, string or SelectorConfig> | static config that is either inlined or declared at file scope                                                                 | 
 | lax?: true                                          | if present, selectors are not required to be defined, but are enforced if defined                                              | 
 
@@ -127,11 +133,11 @@ order by u.pointbalance DESC, u.lastName, u.firstName, u.id
 Using the same sort order example of `-points,lastName,firstName,id`:
 
 ```typescript
-import {Base64} from "js-base64";
-
-// the values in the array come from the last row for the current page.
-// See lastRowToKeySet for a helper function to build the array of values for the last row
-const keyset = Base64.encodeURI(JSON.stringify(["2","Banana","Bob","ba851221-c545-461f-9427-d708829f84b1"]));
+const rows = db.manyOrNone<UserRecord>(sql, context.values);
+if (rows.length>0) {
+    // pass keyset back to client so they can fetch the next page
+    const keyset = toKeySet(lastRowToKeySet(rows[rows.length-1], sorts, context));
+}
 ```
 
 ## Building and running a query
