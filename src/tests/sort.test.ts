@@ -1,7 +1,8 @@
-import { toKeySet, toOrderBy } from "../sort";
+import { toKeySet } from "../keyset";
 import { SqlContext } from "../context";
-import { TestSelectors } from "./fixture";
+import { TestQueryConfig } from "./fixture";
 import invariant from "tiny-invariant";
+import { toOrderBy } from "../llb/to-orderby";
 
 describe("sorting tests", () => {
   const inputs: Array<{
@@ -29,10 +30,10 @@ describe("sorting tests", () => {
     it.each(inputs)("$sort", ({ sort, sql }) => {
       expect.hasAssertions();
       const context: SqlContext = {
+        ...TestQueryConfig,
         values: [],
-        selectors: TestSelectors,
       };
-      const result = toOrderBy(sort, context);
+      const result = toOrderBy(sort, null, context);
       invariant(result.isValid);
       expect(result.orderby).toStrictEqual(sql);
     });
@@ -45,11 +46,10 @@ describe("sorting tests", () => {
         expect.hasAssertions();
         invariant(paging);
         const context: SqlContext = {
+          ...TestQueryConfig,
           values: [],
-          selectors: TestSelectors,
-          keyset: toKeySet(paging.keyset),
         };
-        const result = toOrderBy(sort, context);
+        const result = toOrderBy(sort, toKeySet(paging.keyset), context);
         invariant(result.isValid);
         expect(result.seek).toStrictEqual(paging.seek);
         expect(context.values).toStrictEqual(paging.keyset);

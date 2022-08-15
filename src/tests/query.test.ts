@@ -1,8 +1,8 @@
-import { buildPredicateAndOrderBy } from "../query";
 import { SqlContext } from "../context";
-import { TestSelectors } from "./fixture";
+import { TestQueryConfig } from "./fixture";
 import { Base64 } from "js-base64";
 import invariant from "tiny-invariant";
+import { buildPredicateAndOrderBy } from "../llb/build-sql";
 
 describe("query string tests", () => {
   describe("sql predicate", () => {
@@ -40,11 +40,15 @@ describe("query string tests", () => {
       ({ filter, sort, keyset, expected, expectedValues }) => {
         expect.hasAssertions();
         const context: SqlContext = {
+          ...TestQueryConfig,
           values: [],
-          keyset: keyset ? Base64.encodeURI(JSON.stringify(keyset)) : null,
-          selectors: TestSelectors,
         };
-        const result = buildPredicateAndOrderBy({ filter, sort, context });
+        const result = buildPredicateAndOrderBy({
+          filter,
+          sort,
+          context,
+          keyset: keyset ? Base64.encodeURI(JSON.stringify(keyset)) : null,
+        });
         invariant(result.isValid);
         expect(result.sql).toStrictEqual(expected);
         expect(context.values).toStrictEqual(expectedValues);

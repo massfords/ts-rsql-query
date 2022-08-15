@@ -79,6 +79,7 @@ The target SQL dialect is Postgresql since it supports the SQL92 "row values" sy
 ```typescript
 const context: SqlContext = {
     values: [],
+    mainQuery: "select * from tsrsql.users u",
     selectors: {
         points: {
             sql: "u.pointBalance",
@@ -101,7 +102,7 @@ const context: SqlContext = {
 ```typescript
 const context: SqlContext = {
     values: [],
-    keyset: "base64-encoded-json-array....",  // <--- encoded values of the last row of the previous page
+    mainQuery: "select * from tsrsql.users u",
     selectors: {
         points: {
             sql: "u.pointBalance",

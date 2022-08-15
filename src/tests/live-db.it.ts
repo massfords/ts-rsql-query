@@ -6,27 +6,13 @@ import {
   UserRecord,
 } from "./fixture-db";
 import invariant from "tiny-invariant";
-import { TestSelectors } from "./fixture";
+import { TestQueryConfig } from "./fixture";
 import { SqlContext } from "../context";
-import { assembleFullQuery, mustPredicateAndOrderBy } from "../query";
-import { lastRowToKeySet, toKeySet } from "../sort";
+import { assembleFullQuery } from "../query";
+import { lastRowToKeySet, toKeySet } from "../keyset";
 import { parseSort, SortNode } from "ts-rsql";
 
 describe("runs the sql with a real db connection", () => {
-  // SQL used for the main portion of the listing query.
-  // This is a simple example where all rows are selected.
-  // The selected columns MUST include all selectors used in the sort expression
-  // noinspection SqlResolve
-  const mainSql = `select u.firstName    as "firstName",
-                          u.lastName     as "lastName",
-                          u.email,
-                          u.active,
-                          u.dob,
-                          u.tier,
-                          u.id,
-                          u.pointbalance as points
-                   from tsrsql.users u`;
-
   beforeAll(async () => {
     // this assumes the env has the correct auth info
     process.env.DB_NAME = "postgres";
@@ -82,17 +68,20 @@ describe("runs the sql with a real db connection", () => {
     it.each(inputs)("$filter", async ({ filter, rows }) => {
       expect.hasAssertions();
       invariant(db);
-      const context: SqlContext = { values: [], selectors: TestSelectors };
-      const sql = assembleFullQuery({
-        mainSql,
-        concatStrategy: "where",
-        sqlPredicateAndOrderBy: mustPredicateAndOrderBy({
+      const context: SqlContext = {
+        ...TestQueryConfig,
+        values: [],
+      };
+      const sql = assembleFullQuery(
+        {
           filter,
-          context,
-          sort: [],
-        }),
-      });
-      expect(await db.manyOrNone(sql, context.values)).toHaveLength(rows);
+          sort: null,
+          keyset: null,
+        },
+        context
+      );
+      invariant(sql.isValid);
+      expect(await db.manyOrNone(sql.sql, context.values)).toHaveLength(rows);
     });
   });
 
@@ -143,22 +132,19 @@ describe("runs the sql with a real db connection", () => {
         invariant(parsedSorts);
         invariant(db);
         const context: SqlContext = {
+          ...TestQueryConfig,
           values: [],
-          selectors: TestSelectors,
-          keyset,
         };
-        const actual = await db.manyOrNone(
-          assembleFullQuery({
-            mainSql: mainSql,
-            concatStrategy: "where",
-            sqlPredicateAndOrderBy: mustPredicateAndOrderBy({
-              filter: null,
-              sort: parsedSorts,
-              context,
-            }),
-          }),
-          context.values
+        const sql = assembleFullQuery(
+          {
+            filter: null,
+            sort: parsedSorts,
+            keyset,
+          },
+          context
         );
+        invariant(sql.isValid);
+        const actual = await db.manyOrNone(sql.sql, context.values);
         expect(
           actual.map(({ firstName }: { firstName: string }) => firstName)
         ).toStrictEqual(firstNameFromEachRow);
@@ -166,34 +152,32 @@ describe("runs the sql with a real db connection", () => {
     });
     it("should be able to walk the full list one record at a time", async () => {
       expect.hasAssertions();
-      invariant(db);
-      invariant(parsedSorts);
+      invariant(db && parsedSorts);
       const results: string[] = [];
       const keysets: Array<string | null> = [];
       let keyset: string | null = null;
       while (results.length < 3) {
         const context: SqlContext = {
+          ...TestQueryConfig,
           values: [],
-          selectors: TestSelectors,
-          keyset,
         };
         keysets.push(keyset);
+        const sql = assembleFullQuery(
+          {
+            filter: null,
+            sort: parsedSorts,
+            keyset,
+          },
+          context
+        );
+        invariant(sql.isValid);
         const rows = await db.manyOrNone<UserRecord>(
-          assembleFullQuery({
-            mainSql,
-            concatStrategy: "where",
-            sqlPredicateAndOrderBy: mustPredicateAndOrderBy({
-              filter: null,
-              sort: parsedSorts,
-              context,
-            }),
-          }) + ` limit 1`,
+          `${sql.sql} limit 1`,
           context.values
         );
-        const lastRow = rows[rows.length - 1];
-        invariant(lastRow);
-        keyset = toKeySet(lastRowToKeySet(lastRow, parsedSorts, context));
-        results.push(lastRow.firstName);
+        invariant(rows.length == 1 && rows[0]);
+        keyset = toKeySet(lastRowToKeySet(rows[0], parsedSorts, context));
+        results.push(rows[0].firstName);
       }
       expect(results).toStrictEqual(["Charlie", "Bob", "Alice"]);
       expect(keysets).toMatchInlineSnapshot(`

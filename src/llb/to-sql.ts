@@ -1,7 +1,7 @@
 import { ASTNode, Operand, parseRsql } from "ts-rsql";
 import invariant from "tiny-invariant";
 import { isAstNode, isComparisonNode } from "./ast";
-import { SqlContext } from "./context";
+import { SqlContext } from "../context";
 import { KnownOperator, toSqlOperator } from "./operators";
 import { validate } from "./validate";
 
@@ -19,6 +19,9 @@ const formatSelector = (context: SqlContext, selector: string): string => {
   return sel.sql;
 };
 
+/**
+ * @internal
+ */
 export const toSql = (
   input: ASTNode | string | null,
   context: SqlContext

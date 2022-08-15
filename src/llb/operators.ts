@@ -5,11 +5,15 @@ type SymbolicOperator = "<" | "<=" | ">" | ">=" | "==" | "!=";
 type NamedOperator = `=${"lt" | "le" | "gt" | "ge" | "in" | "out"}=`;
 
 // KnownOperator defines the operators that this lib supports
+/**
+ * @internal
+ */
 export type KnownOperator = SymbolicOperator | NamedOperator;
 
-export const toSqlOperator = (
-  operator: NamedOperator | SymbolicOperator
-): string => {
+/**
+ * @internal
+ */
+export const toSqlOperator = (operator: KnownOperator): string => {
   switch (operator) {
     case "==":
       return "like";
