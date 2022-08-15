@@ -1,6 +1,6 @@
 {
   "name": "ts-rsql-to-sql",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Transforms the AST from ts-rsql into a SQL query",
   "main": "./dist/index.js",
   "scripts": {

@@ -129,15 +129,51 @@ Using the same sort order example of `-points,lastName,firstName,id`:
 ```typescript
 import {Base64} from "js-base64";
 
-// the values in the array come from the last row for the current page. 
-// currently, there's nothing in this library that helps build this.
+// the values in the array come from the last row for the current page.
+// See lastRowToKeySet for a helper function to build the array of values for the last row
 const keyset = Base64.encodeURI(JSON.stringify(["2","Banana","Bob","ba851221-c545-461f-9427-d708829f84b1"]));
 ```
 
 ## Building and running a query
 
-This lib builds the SQL predicate, not the full query. See `live-db.it.ts` for how complete queries are built and run.
+See `live-db.it.ts` for how complete queries are built and run.
 
+```typescript
+const context: SqlContext = {
+    values: [],
+    mainQuery: "select * from tsrsql.users u",
+    selectors: {
+        points: {
+            sql: "u.pointBalance",
+            type: "integer"
+        },
+        lastName: "u.lastName",
+        firstName: "u.firstName",
+        id: "u.id"
+    }
+};
+
+const filter : string | null = null; // set from request query parameter
+const sort : string | null = null; // set from request query parameter
+const keyset : string | null = null; // set from request query parameter
+
+const sql = assembleFullQuery(
+    {
+        filter,
+        sort,
+        keyset,
+    },
+    context
+);
+if (sql.isValid) {
+    const rows = await db.manyOrNone(sql.sql, context.values);
+    let keysetForNextRequest : string | null = null;
+    if (rows.length>0) {
+        invariant(rows[rows.length-1]);
+        keysetForNextRequest = toKeySet(lastRowToKeySet(rows[rows.length-1], parsedSorts, context));
+    }
+}
+```
 
 ## License
 See [LICENSE](./LICENSE).

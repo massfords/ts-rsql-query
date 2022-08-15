@@ -3,9 +3,6 @@ import { SqlContext } from "./context";
 import invariant from "tiny-invariant";
 import { Base64 } from "js-base64";
 
-/**
- * @internal
- */
 export const toKeySet = (values: string[]): string => {
   return Base64.encodeURI(JSON.stringify(values));
 };
