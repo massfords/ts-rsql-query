@@ -182,4 +182,5 @@ if (sql.isValid) {
 ```
 
 ## License
+
 See [LICENSE](./LICENSE).
