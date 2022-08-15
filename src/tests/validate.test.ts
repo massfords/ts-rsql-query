@@ -1,6 +1,6 @@
 import { parseRsql } from "ts-rsql";
-import { toSql } from "../to-sql";
-import { TestSelectors } from "./fixture";
+import { toSql } from "../llb/to-sql";
+import { TestQueryConfig } from "./fixture";
 
 describe("validate AST tests", () => {
   const inputs: Array<{ rsql: string; err: string }> = [
@@ -20,7 +20,10 @@ describe("validate AST tests", () => {
   it.each(inputs)("$rsql", ({ rsql, err }) => {
     expect.hasAssertions();
     const ast = parseRsql(rsql);
-    const actual = toSql(ast, { values: [], selectors: TestSelectors });
+    const actual = toSql(ast, {
+      ...TestQueryConfig,
+      values: [],
+    });
     expect(actual).toStrictEqual({ isValid: false, err });
   });
 });

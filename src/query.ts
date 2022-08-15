@@ -1,42 +1,45 @@
 import { ASTNode, SortNode } from "ts-rsql";
 import { SqlContext } from "./context";
-import { toSql } from "./to-sql";
-import { toOrderBy } from "./sort";
 import { SqlResult } from "./result";
+import { buildPredicateAndOrderBy } from "./llb/build-sql";
 
-// buildQuery produces a SQL clause suitable for appending to the
-// side effects: values extracted from the filter and keyset
-// are appended to the context's values array
-export const buildQuery = (input: {
-  filter: ASTNode | string;
-  sort: SortNode[] | string;
-  context: SqlContext;
-}): SqlResult => {
-  // build the main sql
-  // build the order by clause
-  // return the full query
-  const { filter, sort, context } = input;
-  const mainSql = toSql(filter, context);
-  if (!mainSql.isValid) {
-    return mainSql;
+export const assembleFullQuery = (
+  input: {
+    filter: ASTNode | string | null;
+    sort: SortNode[] | string | null;
+    keyset: string | null;
+  },
+  context: SqlContext
+): SqlResult => {
+  const { filter, sort, keyset } = input;
+  const sqlPredicateAndOrderBy = buildPredicateAndOrderBy({
+    filter,
+    sort,
+    context,
+    keyset,
+  });
+  if (!sqlPredicateAndOrderBy.isValid) {
+    return sqlPredicateAndOrderBy;
   }
-  const orderBy = toOrderBy(sort, context);
-  if (!orderBy.isValid) {
-    return orderBy;
+  if (sqlPredicateAndOrderBy.sql === "") {
+    return { isValid: true, sql: context.mainQuery };
   }
-  if (orderBy.seek === "" && orderBy.orderby == "") {
-    return { isValid: true, sql: mainSql.sql };
+  if (sqlPredicateAndOrderBy.sql.startsWith("ORDER BY")) {
+    // the concat strategy is not considered here.
+    // we'd hit this case in a listing service w/o a predicate
+    // that is returning the first page of results. In this case
+    // there is no predicate generated when building the query.
+    return {
+      isValid: true,
+      sql: `${context.mainQuery} ${sqlPredicateAndOrderBy.sql}`,
+    };
   }
-
-  let sql = mainSql.sql;
-  if (mainSql.sql !== "" && orderBy.seek !== "") {
-    sql += " AND ";
-  }
-  if (orderBy.seek !== "") {
-    sql += orderBy.seek;
-  }
-  if (orderBy.orderby !== "") {
-    sql += ` ORDER BY ${orderBy.orderby}`;
-  }
-  return { isValid: true, sql: sql.trim() };
+  // The concatStrategy is used to join the two strings.
+  // This is left to the caller to configure statically.
+  // It's not worth parsing the query to figure out how to
+  // concat the strings.
+  return {
+    isValid: true,
+    sql: `${context.mainQuery} ${context.concatStrategy} ${sqlPredicateAndOrderBy.sql}`,
+  };
 };

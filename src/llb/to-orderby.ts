@@ -1,10 +1,14 @@
 import { parseSort, SortNode } from "ts-rsql";
-import { SqlContext } from "./context";
+import { SqlContext } from "../context";
 import invariant from "tiny-invariant";
 import { Base64 } from "js-base64";
 
-const buildRowValues = (nodes: SortNode[], context: SqlContext): string => {
-  if (nodes.length === 0 || !context.keyset || context.keyset === "") {
+const buildRowValues = (
+  nodes: SortNode[],
+  keyset: string | null,
+  context: SqlContext
+): string => {
+  if (nodes.length === 0 || !keyset || keyset === "") {
     return "";
   }
   invariant(nodes[0]);
@@ -31,10 +35,17 @@ export type SortResult =
   | { isValid: true; orderby: string; seek: string }
   | { isValid: false; err: string };
 
+/**
+ * @internal
+ */
 export const toOrderBy = (
-  input: SortNode[] | string,
+  input: SortNode[] | string | null,
+  keyset: string | null,
   context: SqlContext
 ): SortResult => {
+  if (input === null) {
+    return { isValid: true, seek: "", orderby: "" };
+  }
   const nodes: SortNode[] =
     typeof input === "string" ? parseSort(input) : input;
   if ("selectors" in context) {
@@ -63,11 +74,11 @@ export const toOrderBy = (
         return `${node.operand}${dir}`;
       })
       .join(","),
-    seek: context.keyset ? buildRowValues(nodes, context) : "",
+    seek: keyset ? buildRowValues(nodes, keyset, context) : "",
   };
-  if (context.keyset) {
+  if (keyset) {
     const keysetValues: string[] = JSON.parse(
-      Base64.decode(context.keyset)
+      Base64.decode(keyset)
     ) as string[];
     context.values.push(...keysetValues);
   }

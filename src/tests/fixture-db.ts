@@ -1,5 +1,5 @@
 import invariant from "tiny-invariant";
-import { v4 } from "uuid";
+import { v5 } from "uuid";
 import pgpPromise from "pg-promise";
 
 export let db: pgpPromise.IDatabase<unknown> | null = null;
@@ -50,7 +50,8 @@ export const destroyDb = async () => {
   db = null;
 };
 
-export interface UserRecord {
+export type UserRecord = {
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -58,7 +59,11 @@ export interface UserRecord {
   dob: string;
   tier: string;
   pointBalance: number;
-}
+};
+
+export const idForTestRecord = (firstname: string): string => {
+  return v5(firstname, "00000000-0000-0000-0000-000000000000");
+};
 
 export const Users: UserRecord[] = [
   {
@@ -69,6 +74,7 @@ export const Users: UserRecord[] = [
     active: false,
     dob: "1960-01-03",
     pointBalance: 1,
+    id: idForTestRecord("Alice"),
   },
   {
     firstName: "Bob",
@@ -78,6 +84,7 @@ export const Users: UserRecord[] = [
     active: true,
     dob: "1960-02-04",
     pointBalance: 2,
+    id: idForTestRecord("Bob"),
   },
   {
     firstName: "Charlie",
@@ -87,6 +94,7 @@ export const Users: UserRecord[] = [
     active: true,
     dob: "1960-03-05",
     pointBalance: 3,
+    id: idForTestRecord("Charlie"),
   },
 ];
 
@@ -95,8 +103,16 @@ export const insertUserRecords = async (): Promise<void> => {
   await db.tx(async (tx) => {
     await tx.batch(
       Users.map(async (row) => {
-        const { firstName, lastName, email, active, dob, tier, pointBalance } =
-          row;
+        const {
+          id,
+          firstName,
+          lastName,
+          email,
+          active,
+          dob,
+          tier,
+          pointBalance,
+        } = row;
         // noinspection SqlResolve
         return await tx.none(
           `
@@ -118,7 +134,7 @@ export const insertUserRecords = async (): Promise<void> => {
                                 $(pointBalance))
                     `,
           {
-            id: v4(),
+            id,
             firstName,
             lastName,
             email,
