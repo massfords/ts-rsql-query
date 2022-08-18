@@ -104,22 +104,7 @@ const context: SqlContext = {
 
 **Sort Expression**: `-points, lastName, firstName, id`
 
-**SQLContext**
-```typescript
-const context: SqlContext = {
-    values: [],
-    mainQuery: "select * from tsrsql.users u",
-    selectors: {
-        points: {
-            sql: "u.pointBalance",
-            type: "integer"
-        },
-        lastName: "u.lastName",
-        firstName: "u.firstName",
-        id: "u.id"
-    }
-};
-```
+**SQLContext** (same as above)
 
 **SQL Output**:
 ```
@@ -145,6 +130,8 @@ if (rows.length>0) {
 See `live-db.it.ts` for how complete queries are built and run.
 
 ```typescript
+import {parseSort} from "ts-rsql";
+
 const context: SqlContext = {
     values: [],
     mainQuery: "select * from tsrsql.users u",
@@ -159,24 +146,31 @@ const context: SqlContext = {
     }
 };
 
-const filter : string | null = null; // set from request query parameter
-const sort : string | null = null; // set from request query parameter
-const keyset : string | null = null; // set from request query parameter
+const filter: string | null = null; // should come from query parameter, mapped by app
+const sort: string | null = null; // should come from query parameter, mapped by app
+const keyset: string | null = null; // should come from query parameter, mapped by app 
+
+// parsing the sorts into an array here for 
+// possible reuse below in building a keyset.
+const parsedSorts: SortNode[] = sort && sort !== "" ? parseSort(sort) : [];
 
 const sql = assembleFullQuery(
     {
         filter,
-        sort,
+        sort: parsedSorts,
         keyset,
     },
     context
 );
 if (sql.isValid) {
     const rows = await db.manyOrNone(sql.sql, context.values);
-    let keysetForNextRequest : string | null = null;
-    if (rows.length>0) {
-        invariant(rows[rows.length-1]);
-        keysetForNextRequest = toKeySet(lastRowToKeySet(rows[rows.length-1], parsedSorts, context));
+    let keysetForNextRequest: string | null = null;
+    if (rows.length > 0) {
+        invariant(rows[rows.length - 1]);
+        // note that the function that builds the keyset expects to 
+        // operate on the row shape from the query.
+        // Also note the re-use of the parsedSorts array here
+        keysetForNextRequest = toKeySet(lastRowToKeySet(rows[rows.length - 1], parsedSorts, context));
     }
 }
 ```
