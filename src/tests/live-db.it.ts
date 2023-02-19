@@ -7,20 +7,27 @@ import {
 } from "./fixture-db";
 import invariant from "tiny-invariant";
 import { TestQueryConfig } from "./fixture";
-import { SqlContext } from "../context";
+import type { SqlContext } from "../context";
 import { assembleFullQuery } from "../query";
 import { lastRowToKeySet, toKeySet } from "../keyset";
 import { parseSort, SortNode } from "ts-rsql";
+import {
+  PostgreSqlContainer,
+  StartedPostgreSqlContainer,
+} from "testcontainers";
 
 describe("runs the sql with a real db connection", () => {
+  let startedContainer: StartedPostgreSqlContainer | null = null;
   beforeAll(async () => {
-    // this assumes the env has the correct auth info
-    process.env.DB_NAME = "postgres";
-    await initDb();
+    startedContainer = await new PostgreSqlContainer()
+      .withUsername("postgres")
+      .start();
+    await initDb(startedContainer);
   });
 
   afterAll(async () => {
     await destroyDb();
+    await startedContainer?.stop();
   });
 
   describe("full query tests", () => {

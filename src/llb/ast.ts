@@ -1,4 +1,4 @@
-import { ASTNode, ComparisonNode, Operand } from "ts-rsql";
+import type { ASTNode, ComparisonNode, Operand } from "ts-rsql";
 
 /**
  * @internal

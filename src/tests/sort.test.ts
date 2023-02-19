@@ -1,5 +1,5 @@
 import { toKeySet } from "../keyset";
-import { SqlContext } from "../context";
+import type { SqlContext } from "../context";
 import { TestQueryConfig } from "./fixture";
 import invariant from "tiny-invariant";
 import { toOrderBy } from "../llb/to-orderby";

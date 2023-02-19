@@ -1,7 +1,7 @@
 import { ASTNode, Operand, parseRsql } from "ts-rsql";
 import invariant from "tiny-invariant";
 import { isAstNode, isComparisonNode } from "./ast";
-import { SqlContext } from "../context";
+import type { SqlContext } from "../context";
 import { KnownOperator, toSqlOperator } from "./operators";
 import { validate } from "./validate";
 

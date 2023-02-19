@@ -1,5 +1,5 @@
 // sample configuration for specifying the selectors and their data types
-import { StaticQueryConfig } from "../context";
+import type { StaticQueryConfig } from "../context";
 
 export const TestQueryConfig: StaticQueryConfig = {
   // SQL used for the main portion of the listing query.

@@ -1,5 +1,5 @@
-import { ASTNode } from "ts-rsql";
-import { SelectorConfig, SqlContext } from "../context";
+import type { ASTNode } from "ts-rsql";
+import type { SelectorConfig, SqlContext } from "../context";
 import { isKnownOperator } from "./operators";
 import { isAstNode, isComparisonNode } from "./ast";
 import { parseISO } from "date-fns";

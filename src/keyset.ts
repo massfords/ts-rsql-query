@@ -1,5 +1,5 @@
-import { SortNode } from "ts-rsql";
-import { SqlContext } from "./context";
+import type { SortNode } from "ts-rsql";
+import type { SqlContext } from "./context";
 import invariant from "tiny-invariant";
 import { Base64 } from "js-base64";
 

@@ -1,6 +1,6 @@
-import { ASTNode, SortNode } from "ts-rsql";
-import { SqlContext } from "./context";
-import { SqlResult } from "./result";
+import type { ASTNode, SortNode } from "ts-rsql";
+import type { SqlContext } from "./context";
+import type { SqlResult } from "./result";
 import { buildPredicateAndOrderBy } from "./llb/build-sql";
 
 export const assembleFullQuery = (

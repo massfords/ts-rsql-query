@@ -1,6 +1,6 @@
 import { toSql } from "../llb/to-sql";
 import { parseRsql } from "ts-rsql";
-import { Value } from "../context";
+import type { Value } from "../context";
 import { TestQueryConfig } from "./fixture";
 
 describe("tests for sql generation", () => {

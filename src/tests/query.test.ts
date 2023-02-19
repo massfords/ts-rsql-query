@@ -1,4 +1,4 @@
-import { SqlContext } from "../context";
+import type { SqlContext } from "../context";
 import { TestQueryConfig } from "./fixture";
 import { Base64 } from "js-base64";
 import invariant from "tiny-invariant";

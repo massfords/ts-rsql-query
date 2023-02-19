@@ -1,23 +1,24 @@
 import invariant from "tiny-invariant";
 import { v5 } from "uuid";
 import pgpPromise from "pg-promise";
+import type { StartedPostgreSqlContainer } from "testcontainers";
 
 export let db: pgpPromise.IDatabase<unknown> | null = null;
 
-export const initDb = async () => {
+export const initDb = async (startedContainer: StartedPostgreSqlContainer) => {
   const cn = {
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    host: startedContainer.getHost(),
+    port: startedContainer.getPort(),
+    database: startedContainer.getDatabase(),
+    user: startedContainer.getUsername(),
+    password: startedContainer.getPassword(),
     max: 1,
   };
   const pgp = pgpPromise({});
   db = pgp(cn);
 
   // create test table
-  await db.none(`
+  await db.none(`create schema if not exists tsrsql;
         drop table if exists tsrsql.users;
         create table tsrsql.users
         (
@@ -45,7 +46,6 @@ export const destroyDb = async () => {
   if (!db) {
     return;
   }
-  // await db.none(`drop table if exists tsrsql.users;`)
   await db.$pool.end();
   db = null;
 };
