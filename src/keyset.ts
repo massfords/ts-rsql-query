@@ -1,5 +1,5 @@
 import type { SortNode } from "ts-rsql";
-import type { SqlContext } from "./context";
+import type { StaticQueryConfig } from "./context";
 import invariant from "tiny-invariant";
 import { Base64 } from "js-base64";
 
@@ -10,13 +10,13 @@ export const toKeySet = (values: string[]): string => {
 export const lastRowToKeySet = (
   row: Record<string, unknown>,
   sorts: SortNode[],
-  context: SqlContext
+  config: StaticQueryConfig
 ): string[] => {
   // walk each sort node
   // map to the key to use to pull the value from the row
   return sorts
     .map((sortNode) => {
-      const selectorConfig = context.selectors[sortNode.operand];
+      const selectorConfig = config.selectors[sortNode.operand];
       if (!selectorConfig) {
         return sortNode.operand;
       }
