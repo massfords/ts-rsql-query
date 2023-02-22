@@ -1,7 +1,12 @@
-import { ASTNode, Operand, parseRsql } from "ts-rsql";
+import { ASTNode, ComparisonNode, Operand, parseRsql } from "ts-rsql";
 import invariant from "tiny-invariant";
 import { isAstNode, isComparisonNode } from "./ast";
-import type { SqlContext } from "../context";
+import type {
+  SelectorConfig,
+  SqlContext,
+  StaticQueryConfig,
+  Value,
+} from "../context";
 import { KnownOperator, toSqlOperator } from "./operators";
 import { validate } from "./validate";
 
@@ -17,6 +22,68 @@ const formatSelector = (context: SqlContext, selector: string): string => {
     return sel;
   }
   return sel.sql;
+};
+
+const selectorConfig = (
+  selector: string,
+  config: StaticQueryConfig
+): SelectorConfig | null => {
+  if (!config.selectors) {
+    return null;
+  }
+  const selConfig = config.selectors[selector] ?? null;
+  if (typeof selConfig === "string") {
+    return null;
+  }
+  return selConfig;
+};
+
+const formatValue = (
+  { allowArray, ast }: { ast: ComparisonNode; allowArray?: boolean },
+  config: StaticQueryConfig
+): Value => {
+  const firstOperand =
+    ast.operands && Array.isArray(ast.operands) ? ast.operands[0] ?? "" : "";
+  const selConfig = selectorConfig(ast.selector, config);
+
+  // case where the config is an enum
+  if (selConfig && "enum" in selConfig) {
+    if (allowArray) {
+      return (
+        ast.operands?.filter((op) => selConfig.enum.find((e) => e === op)) ?? []
+      );
+    }
+    return selConfig.enum.find((e) => e === firstOperand) ? firstOperand : "";
+  }
+
+  // there is no config, use the raw operand
+  if (!selConfig) {
+    if (allowArray && Array.isArray(ast.operands)) {
+      return ast.operands;
+    }
+    return firstOperand;
+  }
+
+  // there is a config, convert the type
+  switch (selConfig.type) {
+    case "string":
+    case "date":
+    case "date-time":
+      return allowArray && Array.isArray(ast.operands)
+        ? ast.operands
+        : firstOperand;
+    case "integer":
+    case "number":
+      return allowArray && Array.isArray(ast.operands)
+        ? ast.operands.map(Number)
+        : Number(firstOperand);
+    case "boolean":
+      return firstOperand.toLowerCase() === "true";
+    default: {
+      const invalid: never = selConfig.type;
+      throw Error(invalid);
+    }
+  }
 };
 
 /**
@@ -58,7 +125,7 @@ const _toSql = (ast: ASTNode | null | Operand, context: SqlContext): string => {
     const operand = ast.operands[0] ?? null;
     return `not(${_toSql(operand, context)})`;
   } else if (isComparisonNode(ast)) {
-    const { values } = context;
+    const { values, ...config } = context;
     // cast is ok here as we are past validation AND the switch/case below is exhaustive
     const op: KnownOperator = ast.operator as KnownOperator;
     const selector = formatSelector(context, ast.selector);
@@ -76,40 +143,37 @@ const _toSql = (ast: ASTNode | null | Operand, context: SqlContext): string => {
         } else if (trailingWildcard) {
           values.push(`${operand.substring(0, operand.length - 2)}%`);
         } else {
-          values.push(operand);
+          values.push(formatValue({ ast }, config));
         }
         return `${selector}${
           leadingWildcard || trailingWildcard ? ` ilike ` : "="
         }$${values.length}`;
       }
       case "!=": {
-        invariant(ast.operands);
-        invariant(ast.operands[0]);
-        values.push(ast.operands[0]);
+        invariant(ast.operands && ast.operands[0]);
+        values.push(formatValue({ ast }, config));
         return `${selector}<>$${values.length}`;
       }
       case "<":
       case "<=":
       case ">":
       case ">=": {
-        invariant(ast.operands);
-        invariant(ast.operands[0]);
-        values.push(ast.operands[0]);
+        invariant(ast.operands && ast.operands[0]);
+        values.push(formatValue({ ast }, config));
         return `${selector}${op}$${values.length}`;
       }
       case "=lt=":
       case "=le=":
       case "=gt=":
       case "=ge=": {
-        invariant(ast.operands);
-        invariant(ast.operands[0]);
-        values.push(ast.operands[0]);
+        invariant(ast.operands && ast.operands[0]);
+        values.push(formatValue({ ast }, config));
         return `${selector}${toSqlOperator(op)}$${values.length}`;
       }
       case "=in=":
       case "=out=": {
         invariant(ast.operands);
-        values.push([...ast.operands]);
+        values.push(formatValue({ ast, allowArray: true }, config));
         return `${selector} ${toSqlOperator(op)} $${values.length}`;
       }
       default: {

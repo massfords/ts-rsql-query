@@ -52,11 +52,11 @@ describe("runs the sql with a real db connection", () => {
         rows: 1,
       },
       {
-        filter: "points=gt=100",
-        rows: 0,
+        filter: "points=gt=1",
+        rows: 2,
       },
       {
-        filter: "points=lt=100",
+        filter: "points<=3",
         rows: 3,
       },
       {
