@@ -8,7 +8,6 @@ import { toOrderBy } from "./to-orderby";
  * produces a SQL clause to append to a base query.
  * side effects: values extracted from the filter and keyset
  *               are appended to the context's values array
- * @internal
  */
 export const buildPredicateAndOrderBy = (input: {
   filter: ASTNode | string | null;

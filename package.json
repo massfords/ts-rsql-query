@@ -1,6 +1,6 @@
 {
-  "name": "ts-rsql-to-sql",
-  "version": "2.2.0",
+  "name": "ts-rsql-query",
+  "version": "1.0.0",
   "description": "Transforms the AST from ts-rsql into a SQL query",
   "main": "./dist/index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/massfords/ts-rsql-to-sql.git"
+    "url": "git+https://github.com/massfords/ts-rsql-query.git"
   },
   "keywords": [
     "rsql"
@@ -19,9 +19,9 @@
   "author": "Mark Ford",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/massfords/ts-rsql-to-sql/issues"
+    "url": "https://github.com/massfords/ts-rsql-query/issues"
   },
-  "homepage": "https://github.com/massfords/ts-rsql-to-sql#readme",
+  "homepage": "https://github.com/massfords/ts-rsql-query#readme",
   "devDependencies": {
     "@types/common-tags": "^1.8.1",
     "@types/jest": "^28.1.3",

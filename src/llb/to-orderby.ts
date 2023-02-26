@@ -35,9 +35,6 @@ export type SortResult =
   | { isValid: true; orderby: string; seek: string }
   | { isValid: false; err: string };
 
-/**
- * @internal
- */
 export const toOrderBy = (
   input: SortNode[] | string | null,
   keyset: string | null,

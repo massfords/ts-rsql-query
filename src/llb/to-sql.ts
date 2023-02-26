@@ -86,9 +86,6 @@ const formatValue = (
   }
 };
 
-/**
- * @internal
- */
 export const toSql = (
   input: ASTNode | string | null,
   context: SqlContext

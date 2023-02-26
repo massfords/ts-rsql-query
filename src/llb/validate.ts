@@ -5,9 +5,6 @@ import { isAstNode, isComparisonNode } from "./ast";
 import { parseISO } from "date-fns";
 import invariant from "tiny-invariant";
 
-/**
- * @internal
- */
 export const validate = (
   ast: ASTNode,
   context: SqlContext

@@ -1,8 +1,8 @@
-# ts-rsql-to-sql
+# ts-rsql-query
 
-[![license](https://img.shields.io/badge/MIT-blue.svg)](https://github.com/massfords/ts-rsql-to-sql/blob/master/LICENSE)
-[![npm version](https://badge.fury.io/js/ts-rsql-to-sql.svg)](https://badge.fury.io/js/ts-rsql-to-sql)
-[![NPM](https://nodei.co/npm/ts-rsql-to-sql.png?stars=true)](https://www.npmjs.com/package/ts-rsql-to-sql)
+[![license](https://img.shields.io/badge/MIT-blue.svg)](https://github.com/massfords/ts-rsql-query/blob/master/LICENSE)
+[![npm version](https://badge.fury.io/js/ts-rsql-query.svg)](https://badge.fury.io/js/ts-rsql-query)
+[![NPM](https://nodei.co/npm/ts-rsql-query.png?stars=true)](https://www.npmjs.com/package/ts-rsql-query)
 
 ## What does it do?
 
