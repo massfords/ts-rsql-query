@@ -18,7 +18,7 @@ export type SelectorConfig = {
     | "boolean";
   // defines the set of permitted values for this selector
   readonly enum?: string[];
-  sortable?: boolean;
+  readonly sortable?: boolean;
 };
 
 export type Value = string | number | boolean | string[] | number[];
