@@ -81,7 +81,9 @@ export const validate = (
           }
           return {
             isValid: false,
-            err: `bad selector value for "${ast.selector}": "${value}" is not a ${selector.type}`,
+            err: `bad selector value for "${
+              ast.selector
+            }": "${value}" is not a ${selector?.type ?? "type"}`,
           };
         }
       }
@@ -94,6 +96,9 @@ export const validate = (
 const isValueValid = (selector: SelectorConfig, val: string): boolean => {
   if ("enum" in selector) {
     return selector.enum.some((allowedValue) => val == allowedValue);
+  }
+  if (!selector.type) {
+    return true;
   }
   switch (selector.type) {
     case "boolean":

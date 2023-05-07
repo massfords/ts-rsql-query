@@ -1,28 +1,25 @@
 export type SelectorConfig = {
   // The value for the left-hand side of a SQL expression.
-  readonly sql: string;
+  // If not set then the selector value is used
+  readonly sql?: string;
   // optional value for use in building a keyset.
   // provides a string to access this selector from the
   // result set returned from its query.
   // If not set, then the selector value is used.
   readonly alias?: string;
-} & (
-  | {
-      // defines the type for the selector and enables validation at runtime.
-      // Note: there is no validation defined for `string`
-      readonly type:
-        | "string"
-        | "number"
-        | "integer"
-        | "date"
-        | "date-time"
-        | "boolean";
-    }
-  | {
-      // defines the set of permitted values for this selector
-      readonly enum: string[];
-    }
-);
+  // defines the type for the selector and enables validation at runtime.
+  // Note: there is no validation defined for `string`
+  readonly type?:
+    | "string"
+    | "number"
+    | "integer"
+    | "date"
+    | "date-time"
+    | "boolean";
+  // defines the set of permitted values for this selector
+  readonly enum?: string[];
+  sortable?: boolean;
+};
 
 export type Value = string | number | boolean | string[] | number[];
 

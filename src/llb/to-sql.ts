@@ -21,7 +21,7 @@ const formatSelector = (context: SqlContext, selector: string): string => {
   if (typeof sel === "string") {
     return sel;
   }
-  return sel.sql;
+  return sel.sql ?? selector;
 };
 
 const selectorConfig = (
@@ -50,14 +50,15 @@ const formatValue = (
   if (selConfig && "enum" in selConfig) {
     if (allowArray) {
       return (
-        ast.operands?.filter((op) => selConfig.enum.find((e) => e === op)) ?? []
+        ast.operands?.filter((op) => selConfig.enum?.find((e) => e === op)) ??
+        []
       );
     }
     return selConfig.enum.find((e) => e === firstOperand) ? firstOperand : "";
   }
 
   // there is no config, use the raw operand
-  if (!selConfig) {
+  if (!selConfig || !selConfig.type) {
     if (allowArray && Array.isArray(ast.operands)) {
       return ast.operands;
     }
