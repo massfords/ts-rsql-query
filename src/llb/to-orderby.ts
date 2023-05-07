@@ -1,5 +1,5 @@
 import { parseSort, SortNode } from "ts-rsql";
-import type { SqlContext } from "../context";
+import type { SelectorConfig, SqlContext } from "../context";
 import invariant from "tiny-invariant";
 import { Base64 } from "js-base64";
 
@@ -48,8 +48,18 @@ export const toOrderBy = (
   if ("selectors" in context) {
     // validate the selectors
     for (const node of nodes) {
-      const selConfig = context.selectors[node.operand];
+      const selConfig = context.selectors[node.operand] as
+        | SelectorConfig
+        | string
+        | null;
       if (!selConfig) {
+        return { isValid: false, err: `invalid sort: ${node.operand}` };
+      }
+      if (
+        typeof selConfig === "object" &&
+        "sortable" in selConfig &&
+        !selConfig.sortable
+      ) {
         return { isValid: false, err: `invalid sort: ${node.operand}` };
       }
     }
@@ -65,7 +75,7 @@ export const toOrderBy = (
           if (typeof selConfig === "string") {
             return `${selConfig}${dir}`;
           } else {
-            return `${selConfig.sql}${dir}`;
+            return `${selConfig.sql ?? node.operand}${dir}`;
           }
         }
         return `${node.operand}${dir}`;
