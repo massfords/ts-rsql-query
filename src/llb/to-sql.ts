@@ -135,11 +135,11 @@ const _toSql = (ast: ASTNode | null | Operand, context: SqlContext): string => {
         const leadingWildcard = operand.startsWith("*");
         const trailingWildcard = operand.endsWith("*");
         if (leadingWildcard && trailingWildcard) {
-          values.push(`%${operand.substring(1, operand.length - 2)}%`);
+          values.push(`%${operand.substring(1, operand.length - 1)}%`);
         } else if (leadingWildcard) {
           values.push(`%${operand.substring(1)}`);
         } else if (trailingWildcard) {
-          values.push(`${operand.substring(0, operand.length - 2)}%`);
+          values.push(`${operand.substring(0, operand.length - 1)}%`);
         } else {
           values.push(formatValue({ ast }, config));
         }
