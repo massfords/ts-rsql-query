@@ -43,6 +43,16 @@ describe("tests for sql generation", () => {
         "%Tarantino",
       ],
     },
+    {
+      filter: `name==Bill*`,
+      sql: `name ilike $1`,
+      values: ["Bill%"],
+    },
+    {
+      filter: `name==*Bill*`,
+      sql: `name ilike $1`,
+      values: ["%Bill%"],
+    },
   ];
   it.each(inputs)("filter", ({ filter, sql, values }) => {
     expect.hasAssertions();
