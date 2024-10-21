@@ -1,34 +1,72 @@
-// SymbolicOperator matches the symbolic operators supported by ts-rsql
+import type { RsqlOperatorPlugin } from "../context";
+import { formatKeyword } from "./to-sql";
+
+/**
+ * SymbolicOperator matches the symbolic operators supported by ts-rsql.
+ */
 type SymbolicOperator = "<" | "<=" | ">" | ">=" | "==" | "!=";
 
-// NamedOperator defines what this library uses for named operators.
+/**
+ * NamedOperator defines what this library uses for named operators.
+ */
 type NamedOperator = `=${"lt" | "le" | "gt" | "ge" | "in" | "out"}=`;
 
-// KnownOperator defines the operators that this lib supports
+/**
+ * KnownOperator defines the operators that this lib supports without any plugins.
+ */
 export type KnownOperator = SymbolicOperator | NamedOperator;
 
-export const toSqlOperator = (operator: KnownOperator): string => {
+/**
+ * Transforms an RSQL operator into a corresponding SQL operator.
+ *
+ * > NOTE:
+ * > - Option `keywordsLowerCase` has no effect for:
+ * >   - `!=`
+ * >   - `<`
+ * >   - `=lt=`
+ * >   - `<=`
+ * >   - `=le=`
+ * >   - `>`
+ * >   - `=gt=`
+ * >   - `>=`
+ * >   - `=ge=`
+ * > - Option `detachedOperators` has no effect for:
+ * >   - `==`
+ * >   - `=in=`
+ * >   - `=out=`
+ *
+ * @param operator - The RSQL operator.
+ * @param [keywordsLowerCase] - Whether to return SQL keywords in lower or upper-case, default: `false`.
+ * @param [detachedOperators] - Whether to return plain SQL operators with SPACE around,
+ * default: `false`.
+ */
+export const toSqlOperator = (
+  operator: KnownOperator,
+  keywordsLowerCase = false,
+  detachedOperators = false
+): string => {
+  const space = detachedOperators ? " " : "";
   switch (operator) {
     case "==":
-      return "like";
+      return formatKeyword("LIKE", keywordsLowerCase);
     case "!=":
-      return "<>";
+      return `${space}<>${space}`;
     case "<":
     case "=lt=":
-      return "<";
+      return `${space}<${space}`;
     case "<=":
     case "=le=":
-      return "<=";
+      return `${space}<=${space}`;
     case ">":
     case "=gt=":
-      return ">";
+      return `${space}>${space}`;
     case ">=":
     case "=ge=":
-      return ">=";
+      return `${space}>=${space}`;
     case "=in=":
-      return "in";
+      return formatKeyword("IN", keywordsLowerCase);
     case "=out=":
-      return "not in";
+      return formatKeyword("NOT IN", keywordsLowerCase);
     default: {
       const invalid: never = operator;
       throw Error(invalid);
@@ -36,6 +74,12 @@ export const toSqlOperator = (operator: KnownOperator): string => {
   }
 };
 
+/**
+ * Checks if passed operator is a known RSQL operator.
+ *
+ * @param maybe - The RSQL operator.
+ * @returns A `true` if is known RSQL operator, else `false`.
+ */
 export const isKnownOperator = (maybe: string): maybe is KnownOperator => {
   try {
     toSqlOperator(maybe as NamedOperator);
@@ -43,4 +87,19 @@ export const isKnownOperator = (maybe: string): maybe is KnownOperator => {
   } catch {
     return false;
   }
+};
+
+/**
+ * Checks if passed operator is a configured RSQL plugin operator.
+ *
+ * @param maybe - The RSQL plugin operator.
+ * @returns A `true` if is a configured RSQL plugin operator, else `false`.
+ */
+export const isPluginOperator = (
+  maybe: string,
+  plugins?: RsqlOperatorPlugin[]
+): boolean => {
+  return plugins?.length
+    ? plugins.some((plugin) => plugin.operator.toLocaleLowerCase() === maybe)
+    : false;
 };

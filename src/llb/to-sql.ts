@@ -9,8 +9,32 @@ import type {
 } from "../context";
 import { KnownOperator, toSqlOperator } from "./operators";
 import { validate } from "./validate";
+import { maybeExecuteRsqlOperatorPlugin } from "../plugin";
 
-const formatSelector = (context: SqlContext, selector: string): string => {
+/**
+ * Formats a keyword according to configuration (either fully upper- or lower-case).
+ *
+ * @param keyword- The keyword to format.
+ * @param [context] - The configuration.
+ * @returns The formatted keyword.
+ */
+export const formatKeyword = (
+  keyword: string,
+  keywordsLowerCase = false
+): string =>
+  keywordsLowerCase ? keyword.toLowerCase() : keyword.toUpperCase();
+
+/**
+ * Formats the selector for printing to SQL.
+ *
+ * @param context - The context.
+ * @param selector - The (unformatted) selector.
+ * @returns The formatted selector.
+ */
+export const formatSelector = (
+  context: SqlContext,
+  selector: string
+): string => {
   if (!("selectors" in context)) {
     return selector;
   }
@@ -38,7 +62,7 @@ const selectorConfig = (
   return selConfig;
 };
 
-const formatValue = (
+export const formatValue = (
   { allowArray, ast }: { ast: ComparisonNode; allowArray?: boolean },
   config: StaticQueryConfig
 ): Value => {
@@ -109,24 +133,38 @@ const _toSql = (ast: ASTNode | null | Operand, context: SqlContext): string => {
     // below which are unnecessary after validation.
     return "";
   }
+  const { detachedOperators, keywordsLowerCase } = context;
   if (ast.operator == "and" || ast.operator == "or") {
     invariant(ast.operands);
     const lhs = ast.operands[0] ?? null;
     let sql = _toSql(lhs, context);
     for (let i = 1; i < ast.operands.length; i++) {
       const rhs = ast.operands[i] ?? null;
-      sql += ` ${ast.operator} ${_toSql(rhs, context)}`;
+      sql += ` ${formatKeyword(ast.operator, keywordsLowerCase)} ${_toSql(
+        rhs,
+        context
+      )}`;
     }
     return `(${sql})`;
   } else if (ast.operator === "not") {
     invariant(ast.operands);
     const operand = ast.operands[0] ?? null;
-    return `not(${_toSql(operand, context)})`;
+    return `${formatKeyword("NOT", keywordsLowerCase)}(${_toSql(
+      operand,
+      context
+    )})`;
   } else if (isComparisonNode(ast)) {
     const { values, ...config } = context;
     // cast is ok here as we are past validation AND the switch/case below is exhaustive
     const op: KnownOperator = ast.operator as KnownOperator;
     const selector = formatSelector(context, ast.selector);
+
+    // checks for and executes plugin (custom operator or overwrite of known operator)
+    const pluginResult = maybeExecuteRsqlOperatorPlugin(context, ast, selector);
+    if (pluginResult) {
+      return pluginResult;
+    }
+
     switch (op) {
       case "==": {
         invariant(ast.operands);
@@ -144,35 +182,35 @@ const _toSql = (ast: ASTNode | null | Operand, context: SqlContext): string => {
           values.push(formatValue({ ast }, config));
         }
         return `${selector}${
-          leadingWildcard || trailingWildcard ? ` ilike ` : "="
+          leadingWildcard || trailingWildcard
+            ? ` ${formatKeyword("ILIKE", keywordsLowerCase)} `
+            : `${detachedOperators ? " " : ""}=${detachedOperators ? " " : ""}`
         }$${values.length}`;
       }
-      case "!=": {
-        invariant(ast.operands && ast.operands[0]);
-        values.push(formatValue({ ast }, config));
-        return `${selector}<>$${values.length}`;
-      }
+      case "!=":
       case "<":
       case "<=":
       case ">":
-      case ">=": {
-        invariant(ast.operands && ast.operands[0]);
-        values.push(formatValue({ ast }, config));
-        return `${selector}${op}$${values.length}`;
-      }
+      case ">=":
       case "=lt=":
       case "=le=":
       case "=gt=":
       case "=ge=": {
         invariant(ast.operands && ast.operands[0]);
         values.push(formatValue({ ast }, config));
-        return `${selector}${toSqlOperator(op)}$${values.length}`;
+        return `${selector}${toSqlOperator(
+          op,
+          keywordsLowerCase,
+          detachedOperators
+        )}$${values.length}`;
       }
       case "=in=":
       case "=out=": {
         invariant(ast.operands);
         values.push(formatValue({ ast, allowArray: true }, config));
-        return `${selector} ${toSqlOperator(op)} $${values.length}`;
+        return `${selector} ${toSqlOperator(op, keywordsLowerCase)} $${
+          values.length
+        }`;
       }
       default: {
         const invalid: never = op;

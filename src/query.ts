@@ -2,6 +2,7 @@ import type { ASTNode, SortNode } from "ts-rsql";
 import type { SqlContext } from "./context";
 import type { SqlResult } from "./result";
 import { buildPredicateAndOrderBy } from "./llb/build-sql";
+import { formatKeyword } from "./llb/to-sql";
 
 export const assembleFullQuery = (
   input: {
@@ -18,20 +19,27 @@ export const assembleFullQuery = (
     context,
     keyset,
   });
+  const defaultPrefix = " ";
+  const {
+    concatStrategy,
+    keywordsLowerCase,
+    mainQuery,
+    whereKeywordPrefix = defaultPrefix,
+  } = context;
   if (!sqlPredicateAndOrderBy.isValid) {
     return sqlPredicateAndOrderBy;
   }
   if (sqlPredicateAndOrderBy.sql === "") {
-    return { isValid: true, sql: context.mainQuery };
+    return { isValid: true, sql: mainQuery };
   }
-  if (sqlPredicateAndOrderBy.sql.startsWith("ORDER BY")) {
-    // the concat strategy is not considered here.
-    // we'd hit this case in a listing service w/o a predicate
+  if (sqlPredicateAndOrderBy.sql.startsWith("ORDER BY" || "order by")) {
+    // The concat strategy is not considered here.
+    // We'd hit this case in a listing service w/o a predicate
     // that is returning the first page of results. In this case
     // there is no predicate generated when building the query.
     return {
       isValid: true,
-      sql: `${context.mainQuery} ${sqlPredicateAndOrderBy.sql}`,
+      sql: `${mainQuery} ${sqlPredicateAndOrderBy.sql}`,
     };
   }
   // The concatStrategy is used to join the two strings.
@@ -40,6 +48,12 @@ export const assembleFullQuery = (
   // concat the strings.
   return {
     isValid: true,
-    sql: `${context.mainQuery} ${context.concatStrategy} ${sqlPredicateAndOrderBy.sql}`,
+    sql: `${mainQuery}${
+      concatStrategy == "where" && whereKeywordPrefix
+        ? whereKeywordPrefix
+        : defaultPrefix
+    }${formatKeyword(concatStrategy, keywordsLowerCase)} ${
+      sqlPredicateAndOrderBy.sql
+    }`,
   };
 };
