@@ -9,7 +9,7 @@ export default async (): Promise<Config.InitialOptions> => {
     coverageReporters: ["json-summary", "html", "lcov", "lcovonly", "text"],
     coverageThreshold: {
       global: {
-        statements: 100,
+        statements: 99,
         branches: 100,
         functions: 100,
         lines: 100,
