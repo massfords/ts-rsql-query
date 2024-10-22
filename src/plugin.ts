@@ -14,7 +14,7 @@ import { formatKeyword, formatValue } from "./llb/to-sql";
 export const CustomOperator = {
   IS_EMPTY: "=empty=",
   IS_NULL: "=null=",
-  IS_NULL_OR_EMPTY: "=null_or_empty=",
+  IS_NULL_OR_EMPTY: "=nullorempty=",
 } as const;
 
 /**
@@ -182,8 +182,8 @@ export const IsEmptyPlugin: RsqlOperatorPlugin = {
  * [SQL equals](https://www.postgresql.org/docs/current/functions-comparison.html) or
  * [SQL is-null](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-is-null/) mapping:
  *
- * - `field=null_or_empty=true` => `(field IS null OR field = '')`
- * - `field=null_or_empty=false` => `(field IS NOT null OR field <> '')`
+ * - `field=nullorempty=true` => `(field IS null OR field = '')`
+ * - `field=nullorempty=false` => `(field IS NOT null OR field <> '')`
  */
 export const IsNullOrEmptyPlugin: RsqlOperatorPlugin = {
   operator: CustomOperator.IS_NULL_OR_EMPTY,

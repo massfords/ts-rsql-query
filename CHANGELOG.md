@@ -12,7 +12,7 @@
     - Is-Not-All: Overwrite of `=out=` (mapped to PostgreSQL's `<> ALL(...)`).
     - Is-Null: `=null=[true | false]` => `IS [ NOT ] null`
     - Is-Empty: `=empty=[true | false]` => `[ = | <>] ''`.
-    - Is-Null-Or-Empty: `=null_or_empty=[true | false]` => `(... IS [ NOT ] null OR ... [ = | <>]  '')`.
+    - Is-Null-Or-Empty: `=nullorempty=[true | false]` => `(... IS [ NOT ] null OR ... [ = | <>]  '')`.
   - Exported new function `formatKeyword(keyword: string, keywordsLowerCase = false)` to be usable in plugins.
   - Exported existing function `formatSelector(context: SqlContext, selector: string)` to be usable in plugins.
   - Exported existing function `formatValue({ allowArray, ast }: { ast: ComparisonNode; allowArray?: boolean }, config: StaticQueryConfig)` to be usable in plugins.
@@ -33,6 +33,7 @@
 - Added new test-coverage script: `npm run test:coverage`.
 - `coverage` folder ignored from Git.
 - Added a `Makefile` for convenience (optional usage, requires UNIX-like environment).
+- Added `Changelog.md`.
 
 ## v1.0.0 - v1.2.0
 

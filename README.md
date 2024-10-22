@@ -341,8 +341,8 @@ Plugin for an is-null or is-empty-string operation.
 [SQL equals](https://www.postgresql.org/docs/current/functions-comparison.html) or
 [SQL is-null](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-is-null/) mapping:
 
-- `field=null_or_empty=true` => `(field IS null OR field = '')`
-- `field=null_or_empty=false` => `(field IS NOT null OR field <> '')`
+- `field=nullorempty=true` => `(field IS null OR field = '')`
+- `field=nullorempty=false` => `(field IS NOT null OR field <> '')`
 
 ## License
 
