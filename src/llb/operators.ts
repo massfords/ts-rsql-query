@@ -100,6 +100,6 @@ export const isPluginOperator = (
   plugins?: RsqlOperatorPlugin[]
 ): boolean => {
   return plugins?.length
-    ? plugins.some((plugin) => plugin.operator.toLocaleLowerCase() === maybe)
+    ? plugins.some((plugin) => plugin.operator.toLowerCase() === maybe)
     : false;
 };

@@ -41,9 +41,7 @@ export const maybeExecuteRsqlOperatorPlugin = (
   const { plugins, values } = context;
   /* Check for plugin (custom operator or overwrite of known operator). */
   const plugin = plugins?.length
-    ? plugins.find(
-        (plugin) => plugin.operator.toLocaleLowerCase() === ast.operator
-      )
+    ? plugins.find((plugin) => plugin.operator.toLowerCase() === ast.operator)
     : undefined;
   if (plugin) {
     invariant(
