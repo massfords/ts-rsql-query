@@ -1,4 +1,4 @@
-# ts-rsql-query-with-plugins
+# ts-rsql-query
 
 [![license](https://img.shields.io/badge/MIT-blue.svg)](https://github.com/massfords/ts-rsql-query/blob/master/LICENSE)
 [![npm version](https://badge.fury.io/js/ts-rsql-query.svg)](https://badge.fury.io/js/ts-rsql-query)
@@ -230,7 +230,7 @@ export type RsqlOperatorPlugin = {
 which is to be passed to the `SqlContext`, e.g. like this:
 
 ```typescript
-import { MapInToEqualsAnyPlugin, MapOutToNotEqualsAllPlugin } from "ts-rsql-query-with-plugins";
+import { MapInToEqualsAnyPlugin, MapOutToNotEqualsAllPlugin } from "ts-rsql-query";
 
 const context: SqlContext = {
   // ...
@@ -243,7 +243,7 @@ const context: SqlContext = {
 The following codes shows an example of how to implement a plugin by the predefined plugin `MapInToEqualsAnyPlugin`:
 
 ```typescript
-import { CustomOperator, formatKeyword, isBooleanValueInvariant, RsqlOperatorPlugin, RsqlOperatorPluginToSqlOptions } from "ts-rsql-query-with-plugins";
+import { CustomOperator, formatKeyword, isBooleanValueInvariant, RsqlOperatorPlugin, RsqlOperatorPluginToSqlOptions } from "ts-rsql-query";
 
 /**
  * Plugin for an is-null operation.
@@ -270,7 +270,7 @@ export const IsNullPlugin: RsqlOperatorPlugin = {
 An example how to overwrite a standard operator `=in=` by predefined `MapInToEqualsAnyPlugin`:
 
 ```typescript
-import { formatKeyword, formatValue, OverwrittenOperator, RsqlOperatorPlugin, RsqlOperatorPluginToSqlOptions } from "ts-rsql-query-with-plugins";
+import { formatKeyword, formatValue, OverwrittenOperator, RsqlOperatorPlugin, RsqlOperatorPluginToSqlOptions } from "ts-rsql-query";
 import invariant from "tiny-invariant";
 import type { ComparisonNode } from "ts-rsql";
 
