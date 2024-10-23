@@ -1,6 +1,6 @@
 import type { ASTNode } from "ts-rsql";
 import type { SelectorConfig, SqlContext } from "../context";
-import { isKnownOperator } from "./operators";
+import { isKnownOperator, isPluginOperator } from "./operators";
 import { isAstNode, isComparisonNode } from "./ast";
 import { parseISO } from "date-fns";
 import invariant from "tiny-invariant";
@@ -47,7 +47,12 @@ export const validate = (
     }
     return { isValid: true };
   } else if (isComparisonNode(ast)) {
-    if (!isKnownOperator(ast.operator)) {
+    if (
+      !(
+        isKnownOperator(ast.operator) ||
+        isPluginOperator(ast.operator, context.plugins)
+      )
+    ) {
       return {
         isValid: false,
         err: `unknown operator: ${JSON.stringify(ast.operator)}`,

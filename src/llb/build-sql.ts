@@ -1,7 +1,7 @@
 import type { ASTNode, SortNode } from "ts-rsql";
 import type { SqlContext } from "../context";
 import type { SqlResult } from "../result";
-import { toSql } from "./to-sql";
+import { formatKeyword, toSql } from "./to-sql";
 import { toOrderBy } from "./to-orderby";
 
 /**
@@ -33,13 +33,15 @@ export const buildPredicateAndOrderBy = (input: {
 
   let sql = sqlPredicate.sql;
   if (sqlPredicate.sql !== "" && orderBy.seek !== "") {
-    sql = `(${sql}) AND `;
+    sql = `(${sql}) ${formatKeyword("and", context.keywordsLowerCase)} `;
   }
   if (orderBy.seek !== "") {
     sql += orderBy.seek;
   }
   if (orderBy.orderby !== "") {
-    sql += ` ORDER BY ${orderBy.orderby}`;
+    sql += ` ${formatKeyword("order by", context.keywordsLowerCase)} ${
+      orderBy.orderby
+    }`;
   }
   return { isValid: true, sql: sql.trim() };
 };

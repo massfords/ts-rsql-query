@@ -1,5 +1,6 @@
 dist
 node_modules
 jest.config.ts
+jest.config-coverage.ts
 jest.config-it.ts
 *.js
