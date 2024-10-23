@@ -100,9 +100,10 @@ export const MapInToEqualsAnyPlugin: RsqlOperatorPlugin = {
   toSql: (options: RsqlOperatorPluginToSqlOptions): string => {
     const { ast, keywordsLowerCase, selector, values, config } = options;
     values.push(formatValue({ ast, allowArray: true }, config));
-    return `${selector} = ${formatKeyword("ANY", keywordsLowerCase)}($${
-      values.length
-    })`;
+    return /* sql */ `${selector} = ${formatKeyword(
+      "ANY",
+      keywordsLowerCase
+    )}($${values.length})`;
   },
 };
 
@@ -124,9 +125,10 @@ export const MapOutToNotEqualsAllPlugin: RsqlOperatorPlugin = {
   toSql: (options: RsqlOperatorPluginToSqlOptions): string => {
     const { ast, keywordsLowerCase, selector, values, config } = options;
     values.push(formatValue({ ast, allowArray: true }, config));
-    return `${selector} <> ${formatKeyword("ALL", keywordsLowerCase)}($${
-      values.length
-    })`;
+    return /* sql */ `${selector} <> ${formatKeyword(
+      "ALL",
+      keywordsLowerCase
+    )}($${values.length})`;
   },
 };
 
@@ -146,7 +148,7 @@ export const IsNullPlugin: RsqlOperatorPlugin = {
       selector,
       ast: { operands },
     } = options;
-    return `${selector} ${formatKeyword("IS", keywordsLowerCase)}${
+    return /* sql */ `${selector} ${formatKeyword("IS", keywordsLowerCase)}${
       (operands as string[])[0] === "false"
         ? ` ${formatKeyword("NOT", keywordsLowerCase)}`
         : ""
@@ -160,6 +162,10 @@ export const IsNullPlugin: RsqlOperatorPlugin = {
  *
  * - `field=empty=true` => `field = ''`
  * - `field=empty=false` => `field <> ''`
+ *
+ * > **IMPORTANT NOTE:** The plugin `IsEmptyPlugin is intended to be
+ * > used on fields which are `TEXT`-like, if you use them on other types (e.g. `TIMESTAMP`)
+ * > you might experience errors on SQL or RSQL validation level. So, be careful when using it.
  */
 export const IsEmptyPlugin: RsqlOperatorPlugin = {
   operator: CustomOperator.IS_EMPTY,
@@ -169,7 +175,7 @@ export const IsEmptyPlugin: RsqlOperatorPlugin = {
       selector,
       ast: { operands },
     } = options;
-    return `${selector} ${
+    return /* sql */ `${selector} ${
       (operands as string[])[0] === "true" ? "=" : "<>"
     } ''`;
   },
@@ -181,14 +187,30 @@ export const IsEmptyPlugin: RsqlOperatorPlugin = {
  * [SQL is-null](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-is-null/) mapping:
  *
  * - `field=nullorempty=true` => `(field IS null OR field = '')`
- * - `field=nullorempty=false` => `(field IS NOT null OR field <> '')`
+ * - `field=nullorempty=false` => `NOT (field IS null OR field = '')`
+ *
+ * > **IMPORTANT NOTE:** The plugin `IsNullOrEmptyPlugin` is intended to be
+ * > used on fields which are `TEXT`-like, if you use them on other types (e.g. `TIMESTAMP`)
+ * > you might experience errors on SQL or RSQL validation level. So, be careful when using it.
  */
 export const IsNullOrEmptyPlugin: RsqlOperatorPlugin = {
   operator: CustomOperator.IS_NULL_OR_EMPTY,
   invariant: isBooleanValueInvariant,
-  toSql: (options: RsqlOperatorPluginToSqlOptions): string =>
-    `(${IsNullPlugin.toSql(options)} ${formatKeyword(
+  toSql: (options: RsqlOperatorPluginToSqlOptions): string => {
+    const {
+      keywordsLowerCase,
+      ast: { operands },
+    } = options;
+    const reverse = (operands as string[])[0] === "false";
+    const maybeReversedOptions = {
+      ...options,
+      ast: { operands: reverse ? ["true"] : operands } as ComparisonNode,
+    };
+    return /* sql */ `${
+      reverse ? `${formatKeyword("NOT", keywordsLowerCase)} ` : ""
+    }(${IsNullPlugin.toSql(maybeReversedOptions)} ${formatKeyword(
       "OR",
-      options.keywordsLowerCase
-    )} ${IsEmptyPlugin.toSql(options)})`,
+      keywordsLowerCase
+    )} ${IsEmptyPlugin.toSql(maybeReversedOptions)})`;
+  },
 };

@@ -187,8 +187,10 @@ if (sql.isValid) {
 
 This library supports a plugin architecture to allow for custom operators or overwriting
 standard ones. The reason for that is, some RSQL build libraries may allow the definition
-of custom operators (e.g. [rsql-builder](https://www.npmjs.com/package/rsql-builder))
-or even sometimes there might also be a need to overwrite the standard operator behavior (see [parameterized query with an `IN` operator](https://github.com/brianc/node-postgres/issues/1452)).
+of custom operators (e.g. [rsql-builder](https://www.npmjs.com/package/rsql-builder)),
+you might have a need for "business-logic" operators encapsulating a complex SQL-logic
+or even sometimes there might also be a need to overwrite the standard operator behavior
+(see [parameterized query with an `IN` operator](https://github.com/brianc/node-postgres/issues/1452)).
 
 For a plugin definition you have to provide:
 
@@ -299,6 +301,10 @@ export const MapInToEqualsAnyPlugin: RsqlOperatorPlugin = {
 
 ### Out-of-the-box plugins
 
+> **IMPORTANT NOTE:** The plugins [`IsEmptyPlugin`](#isemptyplugin) and [`IsNullOrEmptyPlugin`](#isnulloremptyplugin)
+> are intended to be used on fields which are `TEXT`-like, if you use them on other types (e.g. `TIMESTAMP`)
+> you might experience errors on SQL or RSQL validation level. So, be careful when using it.
+
 #### `MapInToEqualsAnyPlugin`
 
 Plugin for in-overwrite (is-any) operation.
@@ -342,7 +348,7 @@ Plugin for an is-null or is-empty-string operation.
 [SQL is-null](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-is-null/) mapping:
 
 - `field=nullorempty=true` => `(field IS null OR field = '')`
-- `field=nullorempty=false` => `(field IS NOT null OR field <> '')`
+- `field=nullorempty=false` => `NOT (field IS null OR field = '')`
 
 ## License
 

@@ -346,14 +346,14 @@ describe("tests for sql generation by plugins", () => {
         operands
       );
 
-      it(`should create the '(IS null OR ... = ''' SQL code from ${CustomOperator.IS_NULL_OR_EMPTY}true`, () => {
+      it(`should create the "(... IS null OR ... = ''" SQL code from ${CustomOperator.IS_NULL_OR_EMPTY}true`, () => {
         expect(IsNullOrEmptyPlugin.toSql(options)).toBe(
           "(table.column IS null OR table.column = '')"
         );
         expect(options.values).toStrictEqual([]);
       });
 
-      it(`should create the '(is null or ... = ''' SQL code from ${CustomOperator.IS_NULL_OR_EMPTY}true`, () => {
+      it(`should create the "(...is null or ... = ''" SQL code from ${CustomOperator.IS_NULL_OR_EMPTY}true`, () => {
         expect(
           IsNullOrEmptyPlugin.toSql({
             ...options,
@@ -363,7 +363,7 @@ describe("tests for sql generation by plugins", () => {
         expect(options.values).toStrictEqual([]);
       });
 
-      it(`should create the '(IS NOT null OR ... <> ''' SQL code from ${CustomOperator.IS_NULL_OR_EMPTY}false`, () => {
+      it(`should create the "NOT (... IS null OR ... = ''" SQL code from ${CustomOperator.IS_NULL_OR_EMPTY}false`, () => {
         expect(
           IsNullOrEmptyPlugin.toSql({
             ...options,
@@ -373,11 +373,11 @@ describe("tests for sql generation by plugins", () => {
               selector,
             },
           })
-        ).toBe("(table.column IS NOT null OR table.column <> '')");
+        ).toBe("NOT (table.column IS null OR table.column = '')");
         expect(options.values).toStrictEqual([]);
       });
 
-      it(`should create the '(is not null or ... <> ''' SQL code from ${CustomOperator.IS_NULL_OR_EMPTY}false`, () => {
+      it(`should create the "not (... is null or ... = ''" SQL code from ${CustomOperator.IS_NULL_OR_EMPTY}false`, () => {
         expect(
           IsNullOrEmptyPlugin.toSql({
             ...options,
@@ -388,7 +388,7 @@ describe("tests for sql generation by plugins", () => {
             },
             keywordsLowerCase: true,
           })
-        ).toBe("(table.column is not null or table.column <> '')");
+        ).toBe("not (table.column is null or table.column = '')");
         expect(options.values).toStrictEqual([]);
       });
     });

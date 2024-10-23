@@ -18,7 +18,7 @@ export const initDb = async (startedContainer: StartedPostgreSqlContainer) => {
   db = pgp(cn);
 
   // create test table
-  await db.none(`create schema if not exists tsrsql;
+  await db.none(/* sql */ `create schema if not exists tsrsql;
         drop table if exists tsrsql.users;
         create table tsrsql.users
         (
@@ -28,6 +28,8 @@ export const initDb = async (startedContainer: StartedPostgreSqlContainer) => {
             email          text                                            not null,
             firstname      text                                            not null,
             lastname       text                                            not null,
+            address        text, -- used for is-null plugin tests
+            interest       text default '', -- used for is-empty plugin tests
             "lastModified" timestamp with time zone default now()          not null,
             dob            date,
             tier           text                     default 'BRONZE'::text not null,
@@ -115,7 +117,7 @@ export const insertUserRecords = async (): Promise<void> => {
         } = row;
         // noinspection SqlResolve
         return await tx.none(
-          `
+          /* sql */ `
                         insert into tsrsql.users (id,
                                                   firstName,
                                                   lastName,

@@ -47,33 +47,6 @@ export type SelectorConfig = {
 export type Value = string | number | boolean | string[] | number[];
 
 /**
- * The static query configuration.
- */
-export type StaticQueryConfig = {
-  /**
-   * The main query part of the resulting SQL.
-   */
-  readonly mainQuery: string;
-  /**
-   * Defines the behavior for mapping the selector to a SQL expression.
-   * Allows for simple logical to physical mapping.
-   * Additional mapping hints available with SelectorConfig as a value.
-   */
-  readonly selectors: Record<string, string | SelectorConfig>;
-  /**
-   * Use `"where"` if the mainQuery does not contain a `WHERE` clause.
-   * Use `"and"` if the mainQuery has an existing `WHERE` clause.
-   */
-  readonly concatStrategy: "where" | "and";
-  /**
-   * If present, selectors are not required to be defined, but are enforced if defined.
-   *
-   * @default false
-   */
-  readonly lax?: true;
-};
-
-/**
  * The options for a custom or an overwrite of a known RSQL operator SQL transformation options.
  */
 export type RsqlOperatorPluginToSqlOptions = {
@@ -81,7 +54,7 @@ export type RsqlOperatorPluginToSqlOptions = {
    * The current already formatted(!) selector.
    *
    * > IMPORTANT NOTE: do NOT use `ComparisonNode.selector` directly from of
-   * > `CustomOrOverwriteKnownRsqlOperatorPluginToSqlOptions.ast`!
+   * > `RsqlOperatorPluginToSqlOptions.ast`!
    */
   readonly selector: string;
   /**
@@ -96,7 +69,7 @@ export type RsqlOperatorPluginToSqlOptions = {
    * `$2`, etc).
    *
    * > IMPORTANT NOTE: add a value only if you add an offset for its query parameter in
-   * > `CustomOrOverwriteKnownRsqlOperatorPlugin.toSql(options: ToSqlOptions)` or you may
+   * > `RsqlOperatorPlugin.toSql(options: ToSqlOptions)` or you may
    * > experience strange value assignments!
    */
   readonly values: Value[];
@@ -141,17 +114,30 @@ export type RsqlOperatorPlugin = {
 };
 
 /**
- * The RSQL to SQL transformation context.
+ * The static query configuration.
  */
-export type SqlContext = {
+export type StaticQueryConfig = {
   /**
-   * This array is used to append values extracted from the filter
-   * and order by handling for use in a parameterized query.
-   * Values extracted from the filter and order by handling are appended to this array.
-   * The length after adding a value determines the offset for its query parameter (`$1`,
-   * `$2`, etc).
+   * The main query part of the resulting SQL.
    */
-  readonly values: Value[];
+  readonly mainQuery: string;
+  /**
+   * Defines the behavior for mapping the selector to a SQL expression.
+   * Allows for simple logical to physical mapping.
+   * Additional mapping hints available with SelectorConfig as a value.
+   */
+  readonly selectors: Record<string, string | SelectorConfig>;
+  /**
+   * Use `"where"` if the mainQuery does not contain a `WHERE` clause.
+   * Use `"and"` if the mainQuery has an existing `WHERE` clause.
+   */
+  readonly concatStrategy: "where" | "and";
+  /**
+   * If present, selectors are not required to be defined, but are enforced if defined.
+   *
+   * @default false
+   */
+  readonly lax?: true;
   /**
    * The custom or overwrite RSQL operator plugins.
    */
@@ -175,4 +161,18 @@ export type SqlContext = {
    * @default false
    */
   readonly detachedOperators?: boolean;
+};
+
+/**
+ * The RSQL to SQL transformation context.
+ */
+export type SqlContext = {
+  /**
+   * This array is used to append values extracted from the filter
+   * and order by handling for use in a parameterized query.
+   * Values extracted from the filter and order by handling are appended to this array.
+   * The length after adding a value determines the offset for its query parameter (`$1`,
+   * `$2`, etc).
+   */
+  readonly values: Value[];
 } & StaticQueryConfig;
