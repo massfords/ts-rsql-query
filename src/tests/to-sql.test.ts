@@ -148,7 +148,7 @@ describe("tests for sql generation", () => {
       });
       expect(actual).toStrictEqual({ isValid: true, sql });
       expect(vals).toStrictEqual(values);
-    }
+    },
   );
 
   it("should use selector when present as string", () => {
@@ -235,7 +235,7 @@ describe("tests for sql generation", () => {
       expect(mockMaybeExecuteRsqlOperatorPlugin).toHaveBeenCalledWith(
         context,
         ast,
-        "name"
+        "name",
       );
     });
 
@@ -264,7 +264,7 @@ describe("tests for sql generation", () => {
       expect(mockMaybeExecuteRsqlOperatorPlugin).toHaveBeenCalledWith(
         context,
         ast,
-        "name"
+        "name",
       );
     });
 
@@ -292,7 +292,7 @@ describe("tests for sql generation", () => {
       expect(mockMaybeExecuteRsqlOperatorPlugin).toHaveBeenCalledWith(
         context,
         ast,
-        "name"
+        "name",
       );
     });
   });

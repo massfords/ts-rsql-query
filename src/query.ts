@@ -10,7 +10,7 @@ export const assembleFullQuery = (
     sort: SortNode[] | string | null;
     keyset: string | null;
   },
-  context: SqlContext
+  context: SqlContext,
 ): SqlResult => {
   const { filter, sort, keyset } = input;
   const sqlPredicateAndOrderBy = buildPredicateAndOrderBy({
@@ -32,7 +32,10 @@ export const assembleFullQuery = (
   if (sqlPredicateAndOrderBy.sql === "") {
     return { isValid: true, sql: mainQuery };
   }
-  if (sqlPredicateAndOrderBy.sql.startsWith("ORDER BY" || "order by")) {
+  if (
+    sqlPredicateAndOrderBy.sql.startsWith("ORDER BY") ||
+    sqlPredicateAndOrderBy.sql.startsWith("order by")
+  ) {
     // The concat strategy is not considered here.
     // We'd hit this case in a listing service w/o a predicate
     // that is returning the first page of results. In this case

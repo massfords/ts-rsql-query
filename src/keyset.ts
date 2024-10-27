@@ -10,7 +10,7 @@ export const toKeySet = (values: string[]): string => {
 export const lastRowToKeySet = (
   row: Record<string, unknown>,
   sorts: SortNode[],
-  config: StaticQueryConfig
+  config: StaticQueryConfig,
 ): string[] => {
   // walk each sort node
   // map to the key to use to pull the value from the row
@@ -32,7 +32,7 @@ export const lastRowToKeySet = (
     .map((alias) => {
       invariant(
         alias in row,
-        () => `row: ${JSON.stringify(row)} is missing property '${alias}'`
+        () => `row: ${JSON.stringify(row)} is missing property '${alias}'`,
       );
       const rowVal = row[alias];
       if (typeof rowVal !== "string") {

@@ -7,7 +7,7 @@ import { formatKeyword } from "./to-sql";
 const buildRowValues = (
   nodes: SortNode[],
   keyset: string | null,
-  context: SqlContext
+  context: SqlContext,
 ): string => {
   if (nodes.length === 0 || !keyset || keyset === "") {
     return "";
@@ -42,7 +42,7 @@ export type SortResult =
 export const toOrderBy = (
   input: SortNode[] | string | null,
   keyset: string | null,
-  context: SqlContext
+  context: SqlContext,
 ): SortResult => {
   if (input === null) {
     return { isValid: true, seek: "", orderby: "" };
@@ -96,7 +96,7 @@ export const toOrderBy = (
 
   if (keyset) {
     const keysetValues: string[] = JSON.parse(
-      Base64.decode(keyset)
+      Base64.decode(keyset),
     ) as string[];
     values.push(...keysetValues);
   }

@@ -14,13 +14,13 @@ import { maybeExecuteRsqlOperatorPlugin } from "../plugin";
 /**
  * Formats a keyword according to configuration (either fully upper- or lower-case).
  *
- * @param keyword- The keyword to format.
- * @param [context] - The configuration.
+ * @param keyword - The keyword to format.
+ * @param keywordsLowerCase - The configuration.
  * @returns The formatted keyword.
  */
 export const formatKeyword = (
   keyword: string,
-  keywordsLowerCase = false
+  keywordsLowerCase = false,
 ): string =>
   keywordsLowerCase ? keyword.toLowerCase() : keyword.toUpperCase();
 
@@ -33,7 +33,7 @@ export const formatKeyword = (
  */
 export const formatSelector = (
   context: SqlContext,
-  selector: string
+  selector: string,
 ): string => {
   if (!("selectors" in context)) {
     return selector;
@@ -50,7 +50,7 @@ export const formatSelector = (
 
 const selectorConfig = (
   selector: string,
-  config: StaticQueryConfig
+  config: StaticQueryConfig,
 ): SelectorConfig | null => {
   if (!config.selectors) {
     return null;
@@ -64,10 +64,10 @@ const selectorConfig = (
 
 export const formatValue = (
   { allowArray, ast }: { ast: ComparisonNode; allowArray?: boolean },
-  config: StaticQueryConfig
+  config: StaticQueryConfig,
 ): Value => {
   const firstOperand =
-    ast.operands && Array.isArray(ast.operands) ? ast.operands[0] ?? "" : "";
+    ast.operands && Array.isArray(ast.operands) ? (ast.operands[0] ?? "") : "";
   const selConfig = selectorConfig(ast.selector, config);
 
   // case where the config is an enum
@@ -113,7 +113,7 @@ export const formatValue = (
 
 export const toSql = (
   input: ASTNode | string | null,
-  context: SqlContext
+  context: SqlContext,
 ): { isValid: true; sql: string } | { isValid: false; err: string } => {
   if (!input || input === "") {
     return { isValid: true, sql: "" };
@@ -142,7 +142,7 @@ const _toSql = (ast: ASTNode | null | Operand, context: SqlContext): string => {
       const rhs = ast.operands[i] ?? null;
       sql += ` ${formatKeyword(ast.operator, keywordsLowerCase)} ${_toSql(
         rhs,
-        context
+        context,
       )}`;
     }
     return `(${sql})`;
@@ -151,7 +151,7 @@ const _toSql = (ast: ASTNode | null | Operand, context: SqlContext): string => {
     const operand = ast.operands[0] ?? null;
     return `${formatKeyword("NOT", keywordsLowerCase)}(${_toSql(
       operand,
-      context
+      context,
     )})`;
   } else if (isComparisonNode(ast)) {
     const { values, ...config } = context;
@@ -201,7 +201,7 @@ const _toSql = (ast: ASTNode | null | Operand, context: SqlContext): string => {
         return `${selector}${toSqlOperator(
           op,
           keywordsLowerCase,
-          detachedOperators
+          detachedOperators,
         )}$${values.length}`;
       }
       case "=in=":

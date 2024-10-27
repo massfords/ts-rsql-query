@@ -86,7 +86,7 @@ describe("runs the sql with a real db connection", () => {
           sort: null,
           keyset: null,
         },
-        context
+        context,
       );
       invariant(sql.isValid);
       expect(await db.manyOrNone(sql.sql, context.values)).toHaveLength(rows);
@@ -177,7 +177,7 @@ describe("runs the sql with a real db connection", () => {
           sort: null,
           keyset: null,
         },
-        context
+        context,
       );
       invariant(sql.isValid);
       expect(await db.manyOrNone(sql.sql, context.values)).toHaveLength(rows);
@@ -212,7 +212,7 @@ describe("runs the sql with a real db connection", () => {
           sort: null,
           keyset: null,
         },
-        context
+        context,
       );
       invariant(sql.isValid);
       expect(await db.manyOrNone(sql.sql, context.values)).toHaveLength(rows);
@@ -275,12 +275,12 @@ describe("runs the sql with a real db connection", () => {
             sort: parsedSorts,
             keyset,
           },
-          context
+          context,
         );
         invariant(sql.isValid);
         const actual = await db.manyOrNone(sql.sql, context.values);
         expect(
-          actual.map(({ firstName }: { firstName: string }) => firstName)
+          actual.map(({ firstName }: { firstName: string }) => firstName),
         ).toStrictEqual(firstNameFromEachRow);
       });
     });
@@ -302,12 +302,12 @@ describe("runs the sql with a real db connection", () => {
             sort: parsedSorts,
             keyset,
           },
-          context
+          context,
         );
         invariant(sql.isValid);
         const rows = await db.manyOrNone<UserRecord>(
           `${sql.sql} limit 1`,
-          context.values
+          context.values,
         );
         invariant(rows.length == 1 && rows[0]);
         keyset = toKeySet(lastRowToKeySet(rows[0], parsedSorts, context));
@@ -315,7 +315,7 @@ describe("runs the sql with a real db connection", () => {
       }
       expect(results).toStrictEqual(["Charlie", "Bob", "Alice"]);
       expect(keysets).toMatchInlineSnapshot(`
-        Array [
+        [
           null,
           "WyIzIiwiQ3VwY2FrZSIsIkNoYXJsaWUiLCIwMzk5YzcyNC01ODI5LTU0NTgtYjdhYy1hYzZhMjk4ZTBlNGIiXQ",
           "WyIyIiwiQmFuYW5hIiwiQm9iIiwiNzEzOWU4MWUtZGMxMy01NGQxLThjMTAtNmZlNmY3YmZiMzRlIl0",
