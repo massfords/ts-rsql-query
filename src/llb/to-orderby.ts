@@ -2,6 +2,7 @@ import { parseSort, SortNode } from "ts-rsql";
 import type { SelectorConfig, SqlContext } from "../context";
 import invariant from "tiny-invariant";
 import { Base64 } from "js-base64";
+import { formatKeyword } from "./to-sql";
 
 const buildRowValues = (
   nodes: SortNode[],
@@ -12,12 +13,15 @@ const buildRowValues = (
     return "";
   }
   invariant(nodes[0]);
-  const op: string = nodes[0].operator === "desc" ? "<" : ">";
+  const { detachedOperators, selectors, values } = context;
+  const space = detachedOperators ? " " : "";
+  const op: string =
+    nodes[0].operator === "desc" ? `${space}<${space}` : `${space}>${space}`;
   return `(${nodes
     .map((node) => node.operand)
     .map((operand: string) => {
-      if ("selectors" in context) {
-        const selConfig = context.selectors[operand];
+      if (selectors) {
+        const selConfig = selectors[operand];
         invariant(selConfig);
         if (typeof selConfig === "string") {
           return selConfig;
@@ -27,7 +31,7 @@ const buildRowValues = (
       return operand;
     })
     .join(",")})${op}(${nodes
-    .map((_value, index) => `$${index + 1 + context.values.length}`)
+    .map((_value, index) => `$${index + 1 + values.length}`)
     .join(",")})`;
 };
 
@@ -45,10 +49,12 @@ export const toOrderBy = (
   }
   const nodes: SortNode[] =
     typeof input === "string" ? parseSort(input) : input;
-  if ("selectors" in context) {
+  const { keywordsLowerCase, selectors, values } = context;
+
+  if (selectors) {
     // validate the selectors
     for (const node of nodes) {
-      const selConfig = context.selectors[node.operand] as
+      const selConfig = selectors[node.operand] as
         | SelectorConfig
         | string
         | null;
@@ -64,13 +70,17 @@ export const toOrderBy = (
       }
     }
   }
+
   const result: SortResult = {
     isValid: true,
     orderby: nodes
       .map((node) => {
-        const dir = node.operator === "desc" ? " DESC" : "";
-        if ("selectors" in context) {
-          const selConfig = context.selectors[node.operand];
+        const dir =
+          node.operator === "desc"
+            ? ` ${formatKeyword("DESC", keywordsLowerCase)}`
+            : "";
+        if (selectors) {
+          const selConfig = selectors[node.operand];
           invariant(selConfig, `selector config missing for ${node.operand}`);
           if (typeof selConfig === "string") {
             return `${selConfig}${dir}`;
@@ -83,11 +93,13 @@ export const toOrderBy = (
       .join(","),
     seek: keyset ? buildRowValues(nodes, keyset, context) : "",
   };
+
   if (keyset) {
     const keysetValues: string[] = JSON.parse(
       Base64.decode(keyset)
     ) as string[];
-    context.values.push(...keysetValues);
+    values.push(...keysetValues);
   }
+
   return result;
 };

@@ -1,12 +1,13 @@
 {
   "name": "ts-rsql-query",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Transforms the AST from ts-rsql into a SQL query",
   "main": "./dist/index.js",
   "scripts": {
     "build": "npx tsc",
     "lint": "npx eslint . --max-warnings 0 --ext ts",
     "test": "npm run build && npx jest",
+    "test:coverage": "npm run build && npx jest --verbose --detectOpenHandles --expand --coverage",
     "it": "npx jest -i -c jest.config-it.ts"
   },
   "repository": {
@@ -17,6 +18,11 @@
     "rsql"
   ],
   "author": "Mark Ford",
+  "contributors": [
+    {
+      "name": "Jens Krefeldt"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/massfords/ts-rsql-query/issues"

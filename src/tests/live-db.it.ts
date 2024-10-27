@@ -6,7 +6,7 @@ import {
   UserRecord,
 } from "./fixture-db";
 import invariant from "tiny-invariant";
-import { TestQueryConfig } from "./fixture";
+import { TestQueryConfig, TestQueryConfigWithPlugins } from "./fixture";
 import type { SqlContext } from "../context";
 import { assembleFullQuery } from "../query";
 import { lastRowToKeySet, toKeySet } from "../keyset";
@@ -18,6 +18,7 @@ import {
 
 describe("runs the sql with a real db connection", () => {
   let startedContainer: StartedPostgreSqlContainer | null = null;
+
   beforeAll(async () => {
     startedContainer = await new PostgreSqlContainer()
       .withUsername("postgres")
@@ -77,6 +78,132 @@ describe("runs the sql with a real db connection", () => {
       invariant(db);
       const context: SqlContext = {
         ...TestQueryConfig,
+        values: [],
+      };
+      const sql = assembleFullQuery(
+        {
+          filter,
+          sort: null,
+          keyset: null,
+        },
+        context
+      );
+      invariant(sql.isValid);
+      expect(await db.manyOrNone(sql.sql, context.values)).toHaveLength(rows);
+    });
+  });
+
+  describe("(custom) plugin query tests", () => {
+    // The test table is only loaded with 3 records
+    // Each of these tests runs the base query with the given filter
+    // and asserts the row count
+    const inputs: Array<{ filter: string; rows: number }> = [
+      /* Custom operator tests: IS [NOT] null, = '', <> '' and combinations. */
+      {
+        filter: "address=null=true",
+        rows: 3,
+      },
+      {
+        filter: "address=null=false",
+        rows: 0,
+      },
+      {
+        filter: "interest=empty=true",
+        rows: 3,
+      },
+      {
+        filter: "interest=empty=false",
+        rows: 0,
+      },
+      {
+        filter: "address=nullorempty=true",
+        rows: 3,
+      },
+      {
+        filter: "address=nullorempty=false",
+        rows: 0,
+      },
+      {
+        filter: "interest=nullorempty=true",
+        rows: 3,
+      },
+      {
+        filter: "interest=nullorempty=false",
+        rows: 0,
+      },
+      {
+        filter: "address=null=true,interest=empty=false",
+        rows: 3,
+      },
+      {
+        filter: "address=null=true;interest=empty=false",
+        rows: 0,
+      },
+      {
+        filter: "address=null=false,interest=empty=true",
+        rows: 3,
+      },
+      {
+        filter: "address=null=false;interest=empty=true",
+        rows: 0,
+      },
+      {
+        filter: "address=nullorempty=true,interest=nullorempty=false",
+        rows: 3,
+      },
+      {
+        filter: "address=nullorempty=true;interest=nullorempty=false",
+        rows: 0,
+      },
+      {
+        filter: "address=nullorempty=false,interest=nullorempty=true",
+        rows: 3,
+      },
+      {
+        filter: "address=nullorempty=false;interest=nullorempty=true",
+        rows: 0,
+      },
+    ];
+    it.each(inputs)("$filter", async ({ filter, rows }) => {
+      expect.hasAssertions();
+      invariant(db);
+      const context: SqlContext = {
+        ...TestQueryConfigWithPlugins,
+        values: [],
+      };
+      const sql = assembleFullQuery(
+        {
+          filter,
+          sort: null,
+          keyset: null,
+        },
+        context
+      );
+      invariant(sql.isValid);
+      expect(await db.manyOrNone(sql.sql, context.values)).toHaveLength(rows);
+    });
+  });
+
+  describe("(overwriting) plugin query tests", () => {
+    // The test table is only loaded with 3 records
+    // Each of these tests runs the base query with the given filter
+    // and asserts the row count
+    const inputs: Array<{ filter: string; rows: number }> = [
+      /* Overwritten operator tests: ANY, ALL instead [NOT] IN. */
+      {
+        filter: "firstName=in=(Alice,Bob)",
+        rows: 2,
+      },
+      {
+        filter: "firstName=out=(Alice,Bob)",
+        rows: 1,
+      },
+    ];
+    it.each(inputs)("$filter", async ({ filter, rows }) => {
+      expect.hasAssertions();
+      invariant(db);
+      const context: SqlContext = {
+        ...TestQueryConfigWithPlugins,
         values: [],
       };
       const sql = assembleFullQuery(
