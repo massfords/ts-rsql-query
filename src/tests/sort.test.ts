@@ -53,7 +53,7 @@ describe("sorting tests", () => {
         invariant(result.isValid);
         expect(result.seek).toStrictEqual(paging.seek);
         expect(context.values).toStrictEqual(paging.keyset);
-      }
+      },
     );
   });
 });

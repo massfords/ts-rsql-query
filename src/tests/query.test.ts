@@ -52,7 +52,7 @@ describe("query string tests", () => {
         invariant(result.isValid);
         expect(result.sql).toStrictEqual(expected);
         expect(context.values).toStrictEqual(expectedValues);
-      }
+      },
     );
 
     const inputsWithDetachedOperators: Array<{
@@ -102,7 +102,7 @@ describe("query string tests", () => {
         invariant(result.isValid);
         expect(result.sql).toStrictEqual(expected);
         expect(context.values).toStrictEqual(expectedValues);
-      }
+      },
     );
   });
 });

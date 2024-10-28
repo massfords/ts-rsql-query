@@ -144,9 +144,9 @@ export const insertUserRecords = async (): Promise<void> => {
             dob,
             tier,
             pointBalance,
-          }
+          },
         );
-      })
+      }),
     );
   });
 };

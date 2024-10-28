@@ -124,7 +124,7 @@ describe("operators tests", () => {
         expect.hasAssertions();
         const actual = toSqlOperator(rsql, true, true);
         expect(actual).toStrictEqual(sql);
-      }
+      },
     );
   });
 
@@ -146,7 +146,7 @@ describe("operators tests", () => {
             operator,
             toSql: jest.fn(),
           },
-        ])
+        ]),
       ).toBe(true);
     });
   });

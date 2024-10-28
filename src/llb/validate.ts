@@ -7,7 +7,7 @@ import invariant from "tiny-invariant";
 
 export const validate = (
   ast: ASTNode,
-  context: SqlContext
+  context: SqlContext,
 ): { isValid: true } | { isValid: false; err: string } => {
   if (ast.operator == "and" || ast.operator == "or") {
     if (!ast.operands) {
@@ -133,7 +133,7 @@ const iso8601DatePattern = new RegExp(
   ]
     .map((regex) => regex.source)
     .join(""),
-  "u"
+  "u",
 );
 const isIso8601DateTime = (input: string): boolean => {
   const parsed = parseISO(input);

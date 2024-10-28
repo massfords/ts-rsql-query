@@ -21,7 +21,7 @@ describe("tests for sql generation by plugins", () => {
   const createOptions = (
     operator: string,
     operands: string[],
-    values = []
+    values = [],
   ): RsqlOperatorPluginToSqlOptions => {
     return {
       ast: {
@@ -68,7 +68,7 @@ describe("tests for sql generation by plugins", () => {
 
     it("should execute a found plugin for a given (custom) operator", () => {
       expect(
-        maybeExecuteRsqlOperatorPlugin(context, ast, formattedSelector)
+        maybeExecuteRsqlOperatorPlugin(context, ast, formattedSelector),
       ).toBe(sql);
 
       expect(mockInvariant).toHaveBeenCalledTimes(1);
@@ -90,8 +90,8 @@ describe("tests for sql generation by plugins", () => {
             plugins: [],
           } as unknown as SqlContext,
           ast,
-          formattedSelector
-        )
+          formattedSelector,
+        ),
       ).toBeUndefined();
 
       expect(mockInvariant).not.toHaveBeenCalled();
@@ -103,8 +103,8 @@ describe("tests for sql generation by plugins", () => {
         maybeExecuteRsqlOperatorPlugin(
           {} as unknown as SqlContext,
           ast,
-          formattedSelector
-        )
+          formattedSelector,
+        ),
       ).toBeUndefined();
 
       expect(mockInvariant).not.toHaveBeenCalled();
@@ -119,7 +119,7 @@ describe("tests for sql generation by plugins", () => {
           operands: ["true"],
           selector,
           operator: "",
-        })
+        }),
       ).not.toThrow();
     });
 
@@ -129,7 +129,7 @@ describe("tests for sql generation by plugins", () => {
           operands: ["false"],
           selector,
           operator: "",
-        })
+        }),
       ).not.toThrow();
     });
 
@@ -139,9 +139,9 @@ describe("tests for sql generation by plugins", () => {
           operands: [],
           selector,
           operator: "",
-        })
+        }),
       ).toThrow(
-        "operator must have one value, operator value must be 'true' or 'false'"
+        "operator must have one value, operator value must be 'true' or 'false'",
       );
     });
 
@@ -151,7 +151,7 @@ describe("tests for sql generation by plugins", () => {
           operands: ["invalid"],
           selector,
           operator: "",
-        })
+        }),
       ).toThrow("operator value must be 'true' or 'false', but was: 'invalid'");
     });
   });
@@ -162,12 +162,12 @@ describe("tests for sql generation by plugins", () => {
       const operands = ["op1", "op2"];
       const options: RsqlOperatorPluginToSqlOptions = createOptions(
         operator,
-        operands
+        operands,
       );
 
       it("should create the parameterized '= ANY($1)' PostgreSQL code from =in= operator", () => {
         expect(MapInToEqualsAnyPlugin.toSql(options)).toBe(
-          "table.column = ANY($1)"
+          "table.column = ANY($1)",
         );
         expect(options.values).toStrictEqual([operands]);
       });
@@ -178,7 +178,7 @@ describe("tests for sql generation by plugins", () => {
             ...options,
             values: [],
             keywordsLowerCase: true,
-          })
+          }),
         ).toBe("table.column = any($1)");
       });
     });
@@ -186,19 +186,15 @@ describe("tests for sql generation by plugins", () => {
     describe("invariant", () => {
       it("should fail on falsy", () => {
         expect(() =>
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/ban-types
-          (MapInToEqualsAnyPlugin.invariant as Function)({
-            operands: null,
-          })
+          MapInToEqualsAnyPlugin.invariant({} as unknown as ComparisonNode),
         ).toThrow("Invariant failed");
       });
 
       it("should pass on truthy", () => {
         expect(() =>
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/ban-types
-          (MapInToEqualsAnyPlugin.invariant as Function)({
+          MapInToEqualsAnyPlugin.invariant({
             operands: [],
-          })
+          } as unknown as ComparisonNode),
         ).not.toThrow("Invariant failed");
       });
     });
@@ -210,12 +206,12 @@ describe("tests for sql generation by plugins", () => {
       const operands = ["op1", "op2"];
       const options: RsqlOperatorPluginToSqlOptions = createOptions(
         operator,
-        operands
+        operands,
       );
 
       it("should create the parameterized '= ANY($1)' PostgreSQL code from =out= operator", () => {
         expect(MapOutToNotEqualsAllPlugin.toSql(options)).toBe(
-          "table.column <> ALL($1)"
+          "table.column <> ALL($1)",
         );
         expect(options.values).toStrictEqual([operands]);
       });
@@ -226,7 +222,7 @@ describe("tests for sql generation by plugins", () => {
             ...options,
             values: [],
             keywordsLowerCase: true,
-          })
+          }),
         ).toBe("table.column <> all($1)");
       });
     });
@@ -234,19 +230,15 @@ describe("tests for sql generation by plugins", () => {
     describe("invariant", () => {
       it("should fail on falsy", () => {
         expect(() =>
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/ban-types
-          (MapOutToNotEqualsAllPlugin.invariant as Function)({
-            operands: null,
-          })
+          MapOutToNotEqualsAllPlugin.invariant({} as unknown as ComparisonNode),
         ).toThrow("Invariant failed");
       });
 
       it("should pass on truthy", () => {
         expect(() =>
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/ban-types
-          (MapOutToNotEqualsAllPlugin.invariant as Function)({
+          MapOutToNotEqualsAllPlugin.invariant({
             operands: [],
-          })
+          } as unknown as ComparisonNode),
         ).not.toThrow("Invariant failed");
       });
     });
@@ -258,7 +250,7 @@ describe("tests for sql generation by plugins", () => {
       const operands = ["true"];
       const options: RsqlOperatorPluginToSqlOptions = createOptions(
         operator,
-        operands
+        operands,
       );
 
       it(`should create the 'IS null' SQL code from ${CustomOperator.IS_NULL}true`, () => {
@@ -271,7 +263,7 @@ describe("tests for sql generation by plugins", () => {
           IsNullPlugin.toSql({
             ...options,
             keywordsLowerCase: true,
-          })
+          }),
         ).toBe("table.column is null");
         expect(options.values).toStrictEqual([]);
       });
@@ -285,7 +277,7 @@ describe("tests for sql generation by plugins", () => {
               operands: ["false"],
               selector,
             },
-          })
+          }),
         ).toBe("table.column IS NOT null");
         expect(options.values).toStrictEqual([]);
       });
@@ -300,7 +292,7 @@ describe("tests for sql generation by plugins", () => {
               selector,
             },
             keywordsLowerCase: true,
-          })
+          }),
         ).toBe("table.column is not null");
         expect(options.values).toStrictEqual([]);
       });
@@ -313,7 +305,7 @@ describe("tests for sql generation by plugins", () => {
       const operands = ["true"];
       const options: RsqlOperatorPluginToSqlOptions = createOptions(
         operator,
-        operands
+        operands,
       );
 
       it(`should create the parameterized '= ''' SQL code from ${CustomOperator.IS_EMPTY}true`, () => {
@@ -330,7 +322,7 @@ describe("tests for sql generation by plugins", () => {
               operands: ["false"],
               selector,
             },
-          })
+          }),
         ).toBe("table.column <> ''");
         expect(options.values).toStrictEqual([]);
       });
@@ -343,12 +335,12 @@ describe("tests for sql generation by plugins", () => {
       const operands = ["true"];
       const options: RsqlOperatorPluginToSqlOptions = createOptions(
         operator,
-        operands
+        operands,
       );
 
       it(`should create the "(... IS null OR ... = ''" SQL code from ${CustomOperator.IS_NULL_OR_EMPTY}true`, () => {
         expect(IsNullOrEmptyPlugin.toSql(options)).toBe(
-          "(table.column IS null OR table.column = '')"
+          "(table.column IS null OR table.column = '')",
         );
         expect(options.values).toStrictEqual([]);
       });
@@ -358,7 +350,7 @@ describe("tests for sql generation by plugins", () => {
           IsNullOrEmptyPlugin.toSql({
             ...options,
             keywordsLowerCase: true,
-          })
+          }),
         ).toBe("(table.column is null or table.column = '')");
         expect(options.values).toStrictEqual([]);
       });
@@ -372,7 +364,7 @@ describe("tests for sql generation by plugins", () => {
               operands: ["false"],
               selector,
             },
-          })
+          }),
         ).toBe("NOT (table.column IS null OR table.column = '')");
         expect(options.values).toStrictEqual([]);
       });
@@ -387,7 +379,7 @@ describe("tests for sql generation by plugins", () => {
               selector,
             },
             keywordsLowerCase: true,
-          })
+          }),
         ).toBe("not (table.column is null or table.column = '')");
         expect(options.values).toStrictEqual([]);
       });

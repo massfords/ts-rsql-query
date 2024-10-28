@@ -36,7 +36,7 @@ export const OverwrittenOperator = {
 export const maybeExecuteRsqlOperatorPlugin = (
   context: SqlContext,
   ast: ComparisonNode,
-  formattedSelector: string
+  formattedSelector: string,
 ): string | undefined => {
   const { plugins, values } = context;
   /* Check for plugin (custom operator or overwrite of known operator). */
@@ -49,7 +49,7 @@ export const maybeExecuteRsqlOperatorPlugin = (
       isKnownOperator(ast.operator) ||
         /* Case: new operator. */
         (ast.operator.startsWith("=") && ast.operator.endsWith("=")),
-      `invalid custom RSQL operator, must start and end with '=',  but was: '${ast.operator}'`
+      `invalid custom RSQL operator, must start and end with '=',  but was: '${ast.operator}'`,
     );
 
     if (plugin.invariant) {
@@ -78,7 +78,7 @@ export const isBooleanValueInvariant = (ast: ComparisonNode): void => {
   invariant(ast.operands[0], `operator must have one value, ${message}`);
   invariant(
     ast.operands[0] === "true" || ast.operands[0] === "false",
-    `${message}, but was: '${ast.operands[0]}'`
+    `${message}, but was: '${ast.operands[0]}'`,
   );
 };
 
@@ -92,7 +92,7 @@ export const isBooleanValueInvariant = (ast: ComparisonNode): void => {
  * > was to have a solution for following `pg` problem: [parameterized query with an
  * > `IN` operator](https://github.com/brianc/node-postgres/issues/1452).
  */
-export const MapInToEqualsAnyPlugin: RsqlOperatorPlugin = {
+export const MapInToEqualsAnyPlugin = {
   operator: OverwrittenOperator.IN,
   invariant: (ast: ComparisonNode): void => {
     invariant(ast.operands);
@@ -102,10 +102,10 @@ export const MapInToEqualsAnyPlugin: RsqlOperatorPlugin = {
     values.push(formatValue({ ast, allowArray: true }, config));
     return /* sql */ `${selector} = ${formatKeyword(
       "ANY",
-      keywordsLowerCase
+      keywordsLowerCase,
     )}($${values.length})`;
   },
-};
+} satisfies RsqlOperatorPlugin;
 
 /**
  * Plugin for out-overwrite (not-all) operation.
@@ -117,7 +117,7 @@ export const MapInToEqualsAnyPlugin: RsqlOperatorPlugin = {
  * > was to have a solution for following `pg` problem: [parameterized query with an
  * > `IN` operator](https://github.com/brianc/node-postgres/issues/1452).
  */
-export const MapOutToNotEqualsAllPlugin: RsqlOperatorPlugin = {
+export const MapOutToNotEqualsAllPlugin = {
   operator: OverwrittenOperator.OUT,
   invariant: (ast: ComparisonNode): void => {
     invariant(ast.operands);
@@ -127,10 +127,10 @@ export const MapOutToNotEqualsAllPlugin: RsqlOperatorPlugin = {
     values.push(formatValue({ ast, allowArray: true }, config));
     return /* sql */ `${selector} <> ${formatKeyword(
       "ALL",
-      keywordsLowerCase
+      keywordsLowerCase,
     )}($${values.length})`;
   },
-};
+} satisfies RsqlOperatorPlugin;
 
 /**
  * Plugin for an is-null operation.
@@ -210,7 +210,7 @@ export const IsNullOrEmptyPlugin: RsqlOperatorPlugin = {
       reverse ? `${formatKeyword("NOT", keywordsLowerCase)} ` : ""
     }(${IsNullPlugin.toSql(maybeReversedOptions)} ${formatKeyword(
       "OR",
-      keywordsLowerCase
+      keywordsLowerCase,
     )} ${IsEmptyPlugin.toSql(maybeReversedOptions)})`;
   },
 };
