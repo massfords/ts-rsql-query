@@ -38,7 +38,7 @@ export const maybeExecuteRsqlOperatorPlugin = (
   ast: ComparisonNode,
   formattedSelector: string,
 ): string | undefined => {
-  const { plugins, values } = context;
+  const { keywordsLowerCase, plugins, values } = context;
   /* Check for plugin (custom operator or overwrite of known operator). */
   const plugin = plugins?.length
     ? plugins.find((plugin) => plugin.operator.toLowerCase() === ast.operator)
@@ -60,6 +60,7 @@ export const maybeExecuteRsqlOperatorPlugin = (
       selector: formattedSelector,
       ast,
       values,
+      keywordsLowerCase,
       config: context,
     });
   }

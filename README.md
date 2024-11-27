@@ -168,7 +168,7 @@ const sql = assembleFullQuery(
     sort: parsedSorts,
     keyset,
   },
-  context
+  context,
 );
 if (sql.isValid) {
   const rows = await db.manyOrNone(sql.sql, context.values);
@@ -242,7 +242,7 @@ const context: SqlContext = {
 
 ### Plugin implementation
 
-The following codes shows an example of how to implement a plugin by the predefined plugin `MapInToEqualsAnyPlugin`:
+The following codes shows an example of how to implement a plugin by the predefined plugin `IsNullPlugin`:
 
 ```typescript
 import { CustomOperator, formatKeyword, isBooleanValueInvariant, RsqlOperatorPlugin, RsqlOperatorPluginToSqlOptions } from "ts-rsql-query";
@@ -259,10 +259,11 @@ export const IsNullPlugin: RsqlOperatorPlugin = {
   invariant: isBooleanValueInvariant,
   toSql: (options: RsqlOperatorPluginToSqlOptions): string => {
     const {
+      keywordsLowerCase,
       selector,
       ast: { operands },
     } = options;
-    return `${selector} ${formatKeyword("IS", options)}${operands?.[0] === "false" ? ` ${formatKeyword("NOT", options)}` : ""} null`;
+    return `${selector} ${formatKeyword("IS", options)}${operands?.[0] === "false" ? ` ${formatKeyword("NOT", keywordsLowerCase)}` : ""} null`;
   },
 };
 ```
@@ -292,9 +293,9 @@ export const MapInToEqualsAnyPlugin: RsqlOperatorPlugin = {
     invariant(ast.operands);
   },
   toSql: (options: RsqlOperatorPluginToSqlOptions): string => {
-    const { ast, selector, values, config } = options;
+    const { ast, keywordsLowerCase, selector, values, config } = options;
     values.push(formatValue({ ast, allowArray: true }, config));
-    return `${selector} = ${formatKeyword("ANY", options)}($${values.length})`;
+    return `${selector} = ${formatKeyword("ANY", keywordsLowerCase)}($${values.length})`;
   },
 };
 ```

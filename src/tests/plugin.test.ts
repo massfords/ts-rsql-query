@@ -83,6 +83,28 @@ describe("tests for sql generation by plugins", () => {
       });
     });
 
+    it("should pass the keywordsLowerCase configuration from context", () => {
+      const newContext = {
+        ...context,
+        keywordsLowerCase: true,
+      } as unknown as SqlContext;
+      expect(
+        maybeExecuteRsqlOperatorPlugin(newContext, ast, formattedSelector),
+      ).toBe(sql);
+
+      expect(mockInvariant).toHaveBeenCalledTimes(1);
+      expect(mockInvariant).toHaveBeenCalledWith(ast);
+
+      expect(mockToSql).toHaveBeenCalledTimes(1);
+      expect(mockToSql).toHaveBeenCalledWith({
+        selector: formattedSelector,
+        ast,
+        values,
+        keywordsLowerCase: true,
+        config: newContext,
+      });
+    });
+
     it("should return undefined if plugins configuration is empty array", () => {
       expect(
         maybeExecuteRsqlOperatorPlugin(

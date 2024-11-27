@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.3.1
+
+**Bugfixes:**
+
+- Fix [No wildcard(s) support for `!=` operator](https://github.com/massfords/ts-rsql-query/issues/6).
+- Fixed a bug where `RsqlOperatorPluginToSqlOptions.keywordsLowerCase` was not passed to the options when it would be configured to `true`.
+- Corrected implementation examples for plugin section in (./README.md#plugins).
+
+**Internals:**
+
+- Added some bugfix related (non-)equality tests to live-DB.
+- Git- and npm-ignored `.vscode/` folder.
+- Fixed internal function `toSqlOperator` to return SQL `=` for RSQL `==` operator (actually, case was never used before, but now it is used and fixed therefore).
+- Added some bugfix related (non-)equality tests to live-DB.
+
 ## v1.3.0
 
 **New feature implementations:**

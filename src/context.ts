@@ -78,7 +78,7 @@ export type RsqlOperatorPluginToSqlOptions = {
    *
    * @default false
    */
-  readonly keywordsLowerCase?: boolean;
+  readonly keywordsLowerCase?: true | undefined;
   /**
    * The static query configuration.
    */
