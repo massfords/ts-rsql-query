@@ -21,6 +21,7 @@ export type KnownOperator = SymbolicOperator | NamedOperator;
  *
  * > NOTE:
  * > - Option `keywordsLowerCase` has no effect for:
+ * >   - `==`
  * >   - `!=`
  * >   - `<`
  * >   - `=lt=`
@@ -31,7 +32,6 @@ export type KnownOperator = SymbolicOperator | NamedOperator;
  * >   - `>=`
  * >   - `=ge=`
  * > - Option `detachedOperators` has no effect for:
- * >   - `==`
  * >   - `=in=`
  * >   - `=out=`
  *
@@ -48,7 +48,7 @@ export const toSqlOperator = (
   const space = detachedOperators ? " " : "";
   switch (operator) {
     case "==":
-      return formatKeyword("LIKE", keywordsLowerCase);
+      return `${space}=${space}`;
     case "!=":
       return `${space}<>${space}`;
     case "<":

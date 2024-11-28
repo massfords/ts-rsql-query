@@ -3,9 +3,9 @@ jest.mock("../plugin", () => ({
   maybeExecuteRsqlOperatorPlugin: mockMaybeExecuteRsqlOperatorPlugin,
 }));
 
-import { formatKeyword, toSql } from "../llb/to-sql";
 import { parseRsql } from "ts-rsql";
 import type { SqlContext, Value } from "../context";
+import { formatKeyword, toSql } from "../llb/to-sql";
 import { TestQueryConfig } from "./fixture";
 
 describe("tests for sql generation", () => {
@@ -66,6 +66,21 @@ describe("tests for sql generation", () => {
     {
       filter: `name==*Bill*`,
       sql: `name ILIKE $1`,
+      values: ["%Bill%"],
+    },
+    {
+      filter: `name!=Bill*`,
+      sql: `name NOT ILIKE $1`,
+      values: ["Bill%"],
+    },
+    {
+      filter: `name!=*Bill`,
+      sql: `name NOT ILIKE $1`,
+      values: ["%Bill"],
+    },
+    {
+      filter: `name!=*Bill*`,
+      sql: `name NOT ILIKE $1`,
       values: ["%Bill%"],
     },
   ];
@@ -130,6 +145,21 @@ describe("tests for sql generation", () => {
     {
       filter: `name==*Bill*`,
       sql: `name ILIKE $1`,
+      values: ["%Bill%"],
+    },
+    {
+      filter: `name!=Bill*`,
+      sql: `name NOT ILIKE $1`,
+      values: ["Bill%"],
+    },
+    {
+      filter: `name!=*Bill`,
+      sql: `name NOT ILIKE $1`,
+      values: ["%Bill"],
+    },
+    {
+      filter: `name!=*Bill*`,
+      sql: `name NOT ILIKE $1`,
       values: ["%Bill%"],
     },
   ];

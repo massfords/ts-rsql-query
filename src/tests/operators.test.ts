@@ -12,7 +12,7 @@ describe("operators tests", () => {
     }> = [
       {
         rsql: "==",
-        sql: "LIKE",
+        sql: "=",
       },
       {
         rsql: "!=",
@@ -71,7 +71,7 @@ describe("operators tests", () => {
     }> = [
       {
         rsql: "==",
-        sql: "like",
+        sql: " = ",
       },
       {
         rsql: "!=",

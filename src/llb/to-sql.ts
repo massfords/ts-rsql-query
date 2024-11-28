@@ -1,15 +1,15 @@
-import { ASTNode, ComparisonNode, Operand, parseRsql } from "ts-rsql";
 import invariant from "tiny-invariant";
-import { isAstNode, isComparisonNode } from "./ast";
+import { ASTNode, ComparisonNode, Operand, parseRsql } from "ts-rsql";
 import type {
   SelectorConfig,
   SqlContext,
   StaticQueryConfig,
   Value,
 } from "../context";
+import { maybeExecuteRsqlOperatorPlugin } from "../plugin";
+import { isAstNode, isComparisonNode } from "./ast";
 import { KnownOperator, toSqlOperator } from "./operators";
 import { validate } from "./validate";
-import { maybeExecuteRsqlOperatorPlugin } from "../plugin";
 
 /**
  * Formats a keyword according to configuration (either fully upper- or lower-case).
@@ -126,6 +126,46 @@ export const toSql = (
   return { isValid: true, sql: _toSql(ast, context) };
 };
 
+/**
+ * Creates the SQL string from the `==` or `!=` RSQL operator including any wildcard(s) occurrence in its operand.
+ *
+ * @param ast - The comparison node.
+ * @param context - The SQL context.
+ * @param operator - The `==` or `!=` RSQL operator.
+ * @param selector - The current selector.
+ * @returns The proper SQL string for `==` or `!=` RSQL operator.
+ */
+const _handleEqualOrNotEqualOperator = (
+  ast: ComparisonNode,
+  context: SqlContext,
+  operator: "==" | "!=",
+  selector: string,
+): string => {
+  const { detachedOperators, keywordsLowerCase, values } = context;
+  invariant(ast.operands);
+  invariant(ast.operands[0]);
+  const operand = ast.operands[0];
+  const leadingWildcard = operand.startsWith("*");
+  const trailingWildcard = operand.endsWith("*");
+  if (leadingWildcard && trailingWildcard) {
+    values.push(`%${operand.substring(1, operand.length - 1)}%`);
+  } else if (leadingWildcard) {
+    values.push(`%${operand.substring(1)}`);
+  } else if (trailingWildcard) {
+    values.push(`${operand.substring(0, operand.length - 1)}%`);
+  } else {
+    values.push(formatValue({ ast }, context));
+  }
+  return `${selector}${
+    leadingWildcard || trailingWildcard
+      ? ` ${formatKeyword(
+          `${operator === "!=" ? "NOT " : ""}ILIKE`,
+          keywordsLowerCase,
+        )} `
+      : `${toSqlOperator(operator, keywordsLowerCase, detachedOperators)}`
+  }$${values.length}`;
+};
+
 const _toSql = (ast: ASTNode | null | Operand, context: SqlContext): string => {
   if (!isAstNode(ast)) {
     // We would have reported this as an error in validate.
@@ -166,28 +206,10 @@ const _toSql = (ast: ASTNode | null | Operand, context: SqlContext): string => {
     }
 
     switch (op) {
-      case "==": {
-        invariant(ast.operands);
-        invariant(ast.operands[0]);
-        const operand = ast.operands[0];
-        const leadingWildcard = operand.startsWith("*");
-        const trailingWildcard = operand.endsWith("*");
-        if (leadingWildcard && trailingWildcard) {
-          values.push(`%${operand.substring(1, operand.length - 1)}%`);
-        } else if (leadingWildcard) {
-          values.push(`%${operand.substring(1)}`);
-        } else if (trailingWildcard) {
-          values.push(`${operand.substring(0, operand.length - 1)}%`);
-        } else {
-          values.push(formatValue({ ast }, config));
-        }
-        return `${selector}${
-          leadingWildcard || trailingWildcard
-            ? ` ${formatKeyword("ILIKE", keywordsLowerCase)} `
-            : `${detachedOperators ? " " : ""}=${detachedOperators ? " " : ""}`
-        }$${values.length}`;
+      case "==":
+      case "!=": {
+        return _handleEqualOrNotEqualOperator(ast, context, op, selector);
       }
-      case "!=":
       case "<":
       case "<=":
       case ">":

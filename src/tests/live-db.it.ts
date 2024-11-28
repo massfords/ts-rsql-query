@@ -1,20 +1,20 @@
 import {
+  PostgreSqlContainer,
+  StartedPostgreSqlContainer,
+} from "testcontainers";
+import invariant from "tiny-invariant";
+import { parseSort, SortNode } from "ts-rsql";
+import type { SqlContext } from "../context";
+import { lastRowToKeySet, toKeySet } from "../keyset";
+import { assembleFullQuery } from "../query";
+import { TestQueryConfig, TestQueryConfigWithPlugins } from "./fixture";
+import {
   db,
   destroyDb,
   idForTestRecord,
   initDb,
   UserRecord,
 } from "./fixture-db";
-import invariant from "tiny-invariant";
-import { TestQueryConfig, TestQueryConfigWithPlugins } from "./fixture";
-import type { SqlContext } from "../context";
-import { assembleFullQuery } from "../query";
-import { lastRowToKeySet, toKeySet } from "../keyset";
-import { parseSort, SortNode } from "ts-rsql";
-import {
-  PostgreSqlContainer,
-  StartedPostgreSqlContainer,
-} from "testcontainers";
 
 describe("runs the sql with a real db connection", () => {
   let startedContainer: StartedPostgreSqlContainer | null = null;
@@ -39,6 +39,34 @@ describe("runs the sql with a real db connection", () => {
       {
         filter: "firstName==Alice",
         rows: 1,
+      },
+      {
+        filter: "firstName==*Alice",
+        rows: 1,
+      },
+      {
+        filter: "firstName==Alice*",
+        rows: 1,
+      },
+      {
+        filter: "firstName==*Alice*",
+        rows: 1,
+      },
+      {
+        filter: "firstName!=Alice",
+        rows: 2,
+      },
+      {
+        filter: "firstName!=*Alice",
+        rows: 2,
+      },
+      {
+        filter: "firstName!=Alice*",
+        rows: 2,
+      },
+      {
+        filter: "firstName!=*Alice*",
+        rows: 2,
       },
       {
         filter: "firstName==Alice,firstName==Bo*",
