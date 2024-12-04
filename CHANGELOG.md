@@ -1,6 +1,12 @@
 # Changelog
 
-## v1.3.1
+## v1.3.3
+
+**Bugfixes:**
+
+- Fix [Optional "boolean" configuration options checked by key-in-object could resolve to true if the key is set to undefined](https://github.com/massfords/ts-rsql-query/issues/8).
+
+## v1.3.2
 
 **Bugfixes:**
 
@@ -14,6 +20,12 @@
 - Git- and npm-ignored `.vscode/` folder.
 - Fixed internal function `toSqlOperator` to return SQL `=` for RSQL `==` operator (actually, case was never used before, but now it is used and fixed therefore).
 - Added some bugfix related (non-)equality tests to live-DB.
+
+## v1.3.1
+
+**Internals:**
+
+- Update ``to`node-version: 20.x`.
 
 ## v1.3.0
 

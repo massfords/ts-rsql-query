@@ -1,9 +1,9 @@
-import type { ASTNode } from "ts-rsql";
-import type { SelectorConfig, SqlContext } from "../context";
-import { isKnownOperator, isPluginOperator } from "./operators";
-import { isAstNode, isComparisonNode } from "./ast";
 import { parseISO } from "date-fns";
 import invariant from "tiny-invariant";
+import type { ASTNode } from "ts-rsql";
+import type { SelectorConfig, SqlContext } from "../context";
+import { isAstNode, isComparisonNode } from "./ast";
+import { isKnownOperator, isPluginOperator } from "./operators";
 
 export const validate = (
   ast: ASTNode,
@@ -66,7 +66,7 @@ export const validate = (
         err: `missing value for selector: ${JSON.stringify(ast.selector)}`,
       };
     }
-    if (!("lax" in context)) {
+    if (!context.lax) {
       const selector = context.selectors[ast.selector];
       if (!selector) {
         return {
@@ -76,7 +76,7 @@ export const validate = (
       }
       if (typeof selector === "object") {
         if (!isValueValid(selector, value)) {
-          if ("enum" in selector) {
+          if (selector.enum) {
             return {
               isValid: false,
               err: `bad selector value for "${
@@ -99,7 +99,7 @@ export const validate = (
 };
 
 const isValueValid = (selector: SelectorConfig, val: string): boolean => {
-  if ("enum" in selector) {
+  if (selector.enum) {
     return selector.enum.some((allowedValue) => val == allowedValue);
   }
   if (!selector.type) {
