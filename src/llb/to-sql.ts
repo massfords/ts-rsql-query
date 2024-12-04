@@ -35,7 +35,7 @@ export const formatSelector = (
   context: SqlContext,
   selector: string,
 ): string => {
-  if (!("selectors" in context)) {
+  if (!context.selectors) {
     return selector;
   }
   const sel = context.selectors[selector];
@@ -71,7 +71,7 @@ export const formatValue = (
   const selConfig = selectorConfig(ast.selector, config);
 
   // case where the config is an enum
-  if (selConfig && "enum" in selConfig) {
+  if (selConfig?.enum) {
     if (allowArray) {
       return (
         ast.operands?.filter((op) => selConfig.enum?.find((e) => e === op)) ??
