@@ -265,6 +265,7 @@ export const IsNullPlugin: RsqlOperatorPlugin = {
     } = options;
     return `${selector} ${formatKeyword("IS", options)}${operands?.[0] === "false" ? ` ${formatKeyword("NOT", keywordsLowerCase)}` : ""} null`;
   },
+  skipValidation: true,
 };
 ```
 
@@ -303,8 +304,14 @@ export const MapInToEqualsAnyPlugin: RsqlOperatorPlugin = {
 ### Out-of-the-box plugins
 
 > **IMPORTANT NOTE:** The plugins [`IsEmptyPlugin`](#isemptyplugin) and [`IsNullOrEmptyPlugin`](#isnulloremptyplugin)
-> are intended to be used on fields which are `TEXT`-like, if you use them on other types (e.g. `TIMESTAMP`)
-> you might experience errors on SQL or RSQL validation level. So, be careful when using it.
+> are intended to be used on fields which are `TEXT`-like, if you use them on other types (e.g. `TIMESTAMP` or `INTEGER`)
+> you might experience errors on SQL validation level, e.g.:
+>
+> ```text
+> error: invalid input syntax for type integer: ""
+> ```
+>
+> These messages could be different depending on the underlying SQL driver/framework implementation So, be careful when using it.
 
 #### `MapInToEqualsAnyPlugin`
 

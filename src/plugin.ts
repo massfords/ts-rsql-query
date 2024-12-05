@@ -26,6 +26,22 @@ export const OverwrittenOperator = {
 } as const;
 
 /**
+ * Find a plugin for given operator.
+ *
+ * @param operator - The currently evaluated RSQL operator.
+ * @param plugins - The RSQL operator plugins.
+ * @returns A `RsqlOperatorPlugin` if `operator` is a configured RSQL plugin operator, else `undefined`.
+ */
+export const findPluginByOperator = (
+  operator: string,
+  plugins?: RsqlOperatorPlugin[],
+): RsqlOperatorPlugin | undefined => {
+  return plugins?.length
+    ? plugins.find((plugin) => plugin.operator.toLowerCase() === operator)
+    : undefined;
+};
+
+/**
  * Executes any plugin found for RSQL `currentOperator`. If none found, it returns `undefined`.
  *
  * @param context - The SQL context.
@@ -40,9 +56,7 @@ export const maybeExecuteRsqlOperatorPlugin = (
 ): string | undefined => {
   const { keywordsLowerCase, plugins, values } = context;
   /* Check for plugin (custom operator or overwrite of known operator). */
-  const plugin = plugins?.length
-    ? plugins.find((plugin) => plugin.operator.toLowerCase() === ast.operator)
-    : undefined;
+  const plugin = findPluginByOperator(ast.operator, plugins);
   if (plugin) {
     invariant(
       /* Case: overwrite any known operator. */
@@ -155,6 +169,7 @@ export const IsNullPlugin: RsqlOperatorPlugin = {
         : ""
     } null`;
   },
+  skipValidation: true,
 };
 
 /**
@@ -180,6 +195,7 @@ export const IsEmptyPlugin: RsqlOperatorPlugin = {
       (operands as string[])[0] === "true" ? "=" : "<>"
     } ''`;
   },
+  skipValidation: true,
 };
 
 /**
@@ -214,4 +230,5 @@ export const IsNullOrEmptyPlugin: RsqlOperatorPlugin = {
       keywordsLowerCase,
     )} ${IsEmptyPlugin.toSql(maybeReversedOptions)})`;
   },
+  skipValidation: true,
 };

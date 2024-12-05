@@ -1,4 +1,3 @@
-import type { RsqlOperatorPlugin } from "../context";
 import { formatKeyword } from "./to-sql";
 
 /**
@@ -87,20 +86,4 @@ export const isKnownOperator = (maybe: string): maybe is KnownOperator => {
   } catch {
     return false;
   }
-};
-
-/**
- * Checks if passed operator is a configured RSQL plugin operator.
- *
- * @param maybe - The RSQL plugin operator.
- * @param plugins - The RSQL operator plugins.
- * @returns A `true` if is a configured RSQL plugin operator, else `false`.
- */
-export const isPluginOperator = (
-  maybe: string,
-  plugins?: RsqlOperatorPlugin[],
-): boolean => {
-  return plugins?.length
-    ? plugins.some((plugin) => plugin.operator.toLowerCase() === maybe)
-    : false;
 };
