@@ -112,12 +112,12 @@ export type RsqlOperatorPlugin = {
    */
   toSql(options: RsqlOperatorPluginToSqlOptions): string;
   /**
-   * Flag whether the selector's `type` validation for value of this plugin should be skipped.
+   * Pass your plugin's allowed values for validation.
    * Use this if you plugin accepts other values than configured in the selector's `type`.
    *
-   * @default false
+   * @default No validation action.
    */
-  readonly skipValidation?: true;
+  readonly allowedValues?: string[];
 };
 
 /**

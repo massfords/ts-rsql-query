@@ -10,7 +10,7 @@
 > IMPORTANT NOTE: the fix affects boolean-value-based plugins (like the provided `IsNullPlugin`) which might be created by
 > developers so far in a "non-backwards-compatible" way.
 >
-> **Migration path**: add `skipValidation: true` to your `RsqlOperatorPlugin`
+> **Migration path**: add `allowedValues: : [ 'value1', value2, ...]` to your `RsqlOperatorPlugin`
 > configuration to enable a proper functionality of your custom plugin.
 
 **Internals:**

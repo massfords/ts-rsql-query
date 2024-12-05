@@ -189,16 +189,6 @@ describe("tests for sql generation by plugins", () => {
         "operator must have one value, operator value must be 'true' or 'false'",
       );
     });
-
-    it("should not pass if operands is not 'true' or 'false'", () => {
-      expect(() =>
-        isBooleanValueInvariant({
-          operands: ["invalid"],
-          selector,
-          operator: "",
-        }),
-      ).toThrow("operator value must be 'true' or 'false', but was: 'invalid'");
-    });
   });
 
   describe("MapInToEqualsAnyPlugin", () => {

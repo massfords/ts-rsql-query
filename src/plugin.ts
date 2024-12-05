@@ -9,6 +9,11 @@ import { isKnownOperator } from "./llb/operators";
 import { formatKeyword, formatValue } from "./llb/to-sql";
 
 /**
+ * The allowed  values for boolean-based plugins.
+ */
+export const BOOLEAN_PLUGIN_VALUES = ["true", "false"];
+
+/**
  * Custom RSQL operators supported out-of-the-box by this library.
  */
 export const CustomOperator = {
@@ -91,10 +96,6 @@ export const isBooleanValueInvariant = (ast: ComparisonNode): void => {
   const message = "operator value must be 'true' or 'false'";
   invariant(ast.operands, `operator must have one value, ${message}`);
   invariant(ast.operands[0], `operator must have one value, ${message}`);
-  invariant(
-    ast.operands[0] === "true" || ast.operands[0] === "false",
-    `${message}, but was: '${ast.operands[0]}'`,
-  );
 };
 
 /**
@@ -169,7 +170,7 @@ export const IsNullPlugin: RsqlOperatorPlugin = {
         : ""
     } null`;
   },
-  skipValidation: true,
+  allowedValues: BOOLEAN_PLUGIN_VALUES,
 };
 
 /**
@@ -195,7 +196,7 @@ export const IsEmptyPlugin: RsqlOperatorPlugin = {
       (operands as string[])[0] === "true" ? "=" : "<>"
     } ''`;
   },
-  skipValidation: true,
+  allowedValues: BOOLEAN_PLUGIN_VALUES,
 };
 
 /**
@@ -230,5 +231,5 @@ export const IsNullOrEmptyPlugin: RsqlOperatorPlugin = {
       keywordsLowerCase,
     )} ${IsEmptyPlugin.toSql(maybeReversedOptions)})`;
   },
-  skipValidation: true,
+  allowedValues: BOOLEAN_PLUGIN_VALUES,
 };

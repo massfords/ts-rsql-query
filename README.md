@@ -226,6 +226,13 @@ export type RsqlOperatorPlugin = {
    * @returns The SQL code.
    */
   toSql(options: RsqlOperatorPluginToSqlOptions): string;
+  /**
+   * Pass your plugin's allowed values for validation.
+   * Use this if you plugin accepts other values than configured in the selector's `type`.
+   *
+   * @default No action.
+   */
+  readonly allowedValues?: string[];
 };
 ```
 
@@ -245,7 +252,7 @@ const context: SqlContext = {
 The following codes shows an example of how to implement a plugin by the predefined plugin `IsNullPlugin`:
 
 ```typescript
-import { CustomOperator, formatKeyword, isBooleanValueInvariant, RsqlOperatorPlugin, RsqlOperatorPluginToSqlOptions } from "ts-rsql-query";
+import { BOOLEAN_PLUGIN_VALUES, CustomOperator, formatKeyword, isBooleanValueInvariant, RsqlOperatorPlugin, RsqlOperatorPluginToSqlOptions } from "ts-rsql-query";
 
 /**
  * Plugin for an is-null operation.
@@ -265,7 +272,7 @@ export const IsNullPlugin: RsqlOperatorPlugin = {
     } = options;
     return `${selector} ${formatKeyword("IS", options)}${operands?.[0] === "false" ? ` ${formatKeyword("NOT", keywordsLowerCase)}` : ""} null`;
   },
-  skipValidation: true,
+  allowedValues: BOOLEAN_PLUGIN_VALUES,
 };
 ```
 

@@ -72,7 +72,17 @@ export const validate = (
         };
       }
       if (typeof selector === "object") {
-        if (!plugin?.skipValidation && !isValueValid(selector, value)) {
+        if (!isValueValid(selector, value, plugin?.allowedValues)) {
+          if (plugin?.allowedValues?.length) {
+            return {
+              isValid: false,
+              err: `bad value for "${ast.selector}": "${value}" (with "${
+                ast.operator
+              }" operator), must be one of ${JSON.stringify(
+                plugin.allowedValues,
+              )}`,
+            };
+          }
           if (selector.enum) {
             return {
               isValid: false,
@@ -95,7 +105,14 @@ export const validate = (
   return { isValid: false, err: `unknown node type: ${JSON.stringify(ast)}` };
 };
 
-const isValueValid = (selector: SelectorConfig, val: string): boolean => {
+const isValueValid = (
+  selector: SelectorConfig,
+  val: string,
+  allowedValues?: string[],
+): boolean => {
+  if (allowedValues?.length) {
+    return allowedValues.some((allowedValue) => val == allowedValue);
+  }
   if (selector.enum) {
     return selector.enum.some((allowedValue) => val == allowedValue);
   }
