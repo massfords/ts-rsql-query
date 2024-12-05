@@ -226,6 +226,13 @@ export type RsqlOperatorPlugin = {
    * @returns The SQL code.
    */
   toSql(options: RsqlOperatorPluginToSqlOptions): string;
+  /**
+   * Flag whether the selector's `type` validation for value of this plugin should be skipped.
+   * Use this if you plugin accepts other values than configured in the selector's `type`.
+   *
+   * @default false
+   */
+  readonly skipValidation?: true;
 };
 ```
 
