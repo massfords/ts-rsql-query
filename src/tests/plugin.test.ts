@@ -6,6 +6,7 @@ import type {
 } from "../context";
 import {
   CustomOperator,
+  findPluginByOperator,
   isBooleanValueInvariant,
   IsEmptyPlugin,
   IsNullOrEmptyPlugin,
@@ -38,6 +39,28 @@ describe("tests for sql generation by plugins", () => {
       values,
     };
   };
+
+  describe("findPluginByOperator", () => {
+    const operator = "=custom=";
+
+    it("should return undefined if plugins configuration is empty array", () => {
+      expect(findPluginByOperator(operator, [])).toBeUndefined();
+    });
+
+    it("should return undefined if plugins configuration is undefined", () => {
+      expect(findPluginByOperator(operator)).toBeUndefined();
+    });
+
+    it("should return plugin if plugins configuration contains plugin", () => {
+      const plugin = {
+        operator,
+        toSql: jest.fn(),
+      };
+      const result = findPluginByOperator(operator, [plugin]);
+      expect(result).toBeDefined();
+      expect(result).toBe(plugin);
+    });
+  });
 
   describe("maybeExecuteRsqlOperatorPlugin", () => {
     const mockInvariant = jest.fn();
@@ -165,16 +188,6 @@ describe("tests for sql generation by plugins", () => {
       ).toThrow(
         "operator must have one value, operator value must be 'true' or 'false'",
       );
-    });
-
-    it("should not pass if operands is not 'true' or 'false'", () => {
-      expect(() =>
-        isBooleanValueInvariant({
-          operands: ["invalid"],
-          selector,
-          operator: "",
-        }),
-      ).toThrow("operator value must be 'true' or 'false', but was: 'invalid'");
     });
   });
 

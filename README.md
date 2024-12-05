@@ -226,6 +226,13 @@ export type RsqlOperatorPlugin = {
    * @returns The SQL code.
    */
   toSql(options: RsqlOperatorPluginToSqlOptions): string;
+  /**
+   * Pass your plugin's allowed values for validation.
+   * Use this if you plugin accepts other values than configured in the selector's `type`.
+   *
+   * @default No action.
+   */
+  readonly allowedValues?: string[];
 };
 ```
 
@@ -245,7 +252,7 @@ const context: SqlContext = {
 The following codes shows an example of how to implement a plugin by the predefined plugin `IsNullPlugin`:
 
 ```typescript
-import { CustomOperator, formatKeyword, isBooleanValueInvariant, RsqlOperatorPlugin, RsqlOperatorPluginToSqlOptions } from "ts-rsql-query";
+import { BOOLEAN_PLUGIN_VALUES, CustomOperator, formatKeyword, isBooleanValueInvariant, RsqlOperatorPlugin, RsqlOperatorPluginToSqlOptions } from "ts-rsql-query";
 
 /**
  * Plugin for an is-null operation.
@@ -265,6 +272,7 @@ export const IsNullPlugin: RsqlOperatorPlugin = {
     } = options;
     return `${selector} ${formatKeyword("IS", options)}${operands?.[0] === "false" ? ` ${formatKeyword("NOT", keywordsLowerCase)}` : ""} null`;
   },
+  allowedValues: BOOLEAN_PLUGIN_VALUES,
 };
 ```
 
@@ -303,8 +311,14 @@ export const MapInToEqualsAnyPlugin: RsqlOperatorPlugin = {
 ### Out-of-the-box plugins
 
 > **IMPORTANT NOTE:** The plugins [`IsEmptyPlugin`](#isemptyplugin) and [`IsNullOrEmptyPlugin`](#isnulloremptyplugin)
-> are intended to be used on fields which are `TEXT`-like, if you use them on other types (e.g. `TIMESTAMP`)
-> you might experience errors on SQL or RSQL validation level. So, be careful when using it.
+> are intended to be used on fields which are `TEXT`-like, if you use them on other types (e.g. `TIMESTAMP` or `INTEGER`)
+> you might experience errors on SQL validation level, e.g.:
+>
+> ```text
+> error: invalid input syntax for type integer: ""
+> ```
+>
+> These messages could be different depending on the underlying SQL driver/framework implementation So, be careful when using it.
 
 #### `MapInToEqualsAnyPlugin`
 

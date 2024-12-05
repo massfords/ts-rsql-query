@@ -9,6 +9,11 @@ import { isKnownOperator } from "./llb/operators";
 import { formatKeyword, formatValue } from "./llb/to-sql";
 
 /**
+ * The allowed  values for boolean-based plugins.
+ */
+export const BOOLEAN_PLUGIN_VALUES = ["true", "false"];
+
+/**
  * Custom RSQL operators supported out-of-the-box by this library.
  */
 export const CustomOperator = {
@@ -26,6 +31,22 @@ export const OverwrittenOperator = {
 } as const;
 
 /**
+ * Find a plugin for given operator.
+ *
+ * @param operator - The currently evaluated RSQL operator.
+ * @param plugins - The RSQL operator plugins.
+ * @returns A `RsqlOperatorPlugin` if `operator` is a configured RSQL plugin operator, else `undefined`.
+ */
+export const findPluginByOperator = (
+  operator: string,
+  plugins?: RsqlOperatorPlugin[],
+): RsqlOperatorPlugin | undefined => {
+  return plugins?.length
+    ? plugins.find((plugin) => plugin.operator.toLowerCase() === operator)
+    : undefined;
+};
+
+/**
  * Executes any plugin found for RSQL `currentOperator`. If none found, it returns `undefined`.
  *
  * @param context - The SQL context.
@@ -40,9 +61,7 @@ export const maybeExecuteRsqlOperatorPlugin = (
 ): string | undefined => {
   const { keywordsLowerCase, plugins, values } = context;
   /* Check for plugin (custom operator or overwrite of known operator). */
-  const plugin = plugins?.length
-    ? plugins.find((plugin) => plugin.operator.toLowerCase() === ast.operator)
-    : undefined;
+  const plugin = findPluginByOperator(ast.operator, plugins);
   if (plugin) {
     invariant(
       /* Case: overwrite any known operator. */
@@ -77,10 +96,6 @@ export const isBooleanValueInvariant = (ast: ComparisonNode): void => {
   const message = "operator value must be 'true' or 'false'";
   invariant(ast.operands, `operator must have one value, ${message}`);
   invariant(ast.operands[0], `operator must have one value, ${message}`);
-  invariant(
-    ast.operands[0] === "true" || ast.operands[0] === "false",
-    `${message}, but was: '${ast.operands[0]}'`,
-  );
 };
 
 /**
@@ -155,6 +170,7 @@ export const IsNullPlugin: RsqlOperatorPlugin = {
         : ""
     } null`;
   },
+  allowedValues: BOOLEAN_PLUGIN_VALUES,
 };
 
 /**
@@ -180,6 +196,7 @@ export const IsEmptyPlugin: RsqlOperatorPlugin = {
       (operands as string[])[0] === "true" ? "=" : "<>"
     } ''`;
   },
+  allowedValues: BOOLEAN_PLUGIN_VALUES,
 };
 
 /**
@@ -214,4 +231,5 @@ export const IsNullOrEmptyPlugin: RsqlOperatorPlugin = {
       keywordsLowerCase,
     )} ${IsEmptyPlugin.toSql(maybeReversedOptions)})`;
   },
+  allowedValues: BOOLEAN_PLUGIN_VALUES,
 };
