@@ -1,5 +1,7 @@
+const mockFindPluginByOperator = jest.fn();
 const mockMaybeExecuteRsqlOperatorPlugin = jest.fn();
 jest.mock("../plugin", () => ({
+  findPluginByOperator: mockFindPluginByOperator,
   maybeExecuteRsqlOperatorPlugin: mockMaybeExecuteRsqlOperatorPlugin,
 }));
 
@@ -231,13 +233,13 @@ describe("tests for sql generation", () => {
 
   describe("plugin", () => {
     beforeEach(() => {
-      mockMaybeExecuteRsqlOperatorPlugin.mockClear();
+      jest.clearAllMocks();
     });
 
     it("should be executed if configured", () => {
       expect.hasAssertions();
 
-      const operator = "=isNull=";
+      const operator = "=null=";
       const ast = parseRsql(`name${operator}true`);
 
       /* Just simulate that the function is called and returns a value. */
@@ -256,10 +258,17 @@ describe("tests for sql generation", () => {
         selectors: {},
         lax: true,
       };
+      mockFindPluginByOperator.mockReturnValueOnce(context.plugins?.[0]);
 
       const actual = toSql(ast, context);
 
       expect(actual).toStrictEqual({ isValid: true, sql: expectedSql });
+
+      expect(mockFindPluginByOperator).toHaveBeenCalledTimes(1);
+      expect(mockFindPluginByOperator).toHaveBeenCalledWith(
+        operator,
+        context.plugins,
+      );
 
       expect(mockMaybeExecuteRsqlOperatorPlugin).toHaveBeenCalledTimes(1);
       expect(mockMaybeExecuteRsqlOperatorPlugin).toHaveBeenCalledWith(
@@ -289,6 +298,12 @@ describe("tests for sql generation", () => {
       const actual = toSql(ast, context);
 
       expect(actual).toStrictEqual({ isValid: true, sql: "name=$1" });
+
+      expect(mockFindPluginByOperator).toHaveBeenCalledTimes(1);
+      expect(mockFindPluginByOperator).toHaveBeenCalledWith(
+        operator,
+        context.plugins,
+      );
 
       expect(mockMaybeExecuteRsqlOperatorPlugin).toHaveBeenCalledTimes(1);
       expect(mockMaybeExecuteRsqlOperatorPlugin).toHaveBeenCalledWith(
