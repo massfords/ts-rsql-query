@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.3.4
+
+**Bugfix:**
+
+- Fix [Boolean value based plugins do not work with validation (in case of typed selector values) and will fail with unexpected error](https://github.com/massfords/ts-rsql-query/issues/10).
+- Plugin configuration section of [README.md](./README.md#plugin-configuration) updated.
+
+> IMPORTANT NOTE: the fix affects boolean-value-based plugins (like the provided `IsNullPlugin`) which might be created by
+> developers so far in a "non-backwards-compatible" way.
+>
+> **Migration path**: add `allowedValues: : [ 'value1', value2, ...]` to your `RsqlOperatorPlugin`
+> configuration to enable a proper functionality of your custom plugin.
+
+**Internals:**
+
+- Tests added for fix.
+- Added new `Makefile` target: `tl` to execute live-DB tests.
+- Fix `lastModified` selector-column mapping in `TestQueryConfig` (column was configured case-sensitive in DB but not in selector).
+
 ## v1.3.3
 
 **Bugfixes:**

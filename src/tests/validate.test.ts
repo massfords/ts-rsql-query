@@ -1,6 +1,6 @@
 import { parseRsql } from "ts-rsql";
 import { toSql } from "../llb/to-sql";
-import { TestQueryConfig } from "./fixture";
+import { TestQueryConfig, TestQueryConfigWithPlugins } from "./fixture";
 
 describe("validate AST tests", () => {
   const inputs: Array<{ rsql: string; err: string }> = [
@@ -68,5 +68,31 @@ describe("validate AST tests", () => {
       lax: undefined as unknown as true,
     });
     expect(actual).toStrictEqual({ isValid: false, err });
+  });
+
+  describe("(custom) plugin query tests", () => {
+    const inputs: Array<{ rsql: string; err: string }> = [
+      {
+        rsql: "points=null=invalid",
+        err: `bad value for "points": "invalid" (with "=null=" operator), must be one of ["true","false"]`,
+      },
+      {
+        rsql: "tier=nullorempty=invalid",
+        err: `bad value for "tier": "invalid" (with "=nullorempty=" operator), must be one of ["true","false"]`,
+      },
+      {
+        rsql: "tier=empty=invalid",
+        err: `bad value for "tier": "invalid" (with "=empty=" operator), must be one of ["true","false"]`,
+      },
+    ];
+    it.each(inputs)("$rsql", ({ rsql, err }) => {
+      expect.hasAssertions();
+      const ast = parseRsql(rsql);
+      const actual = toSql(ast, {
+        ...TestQueryConfigWithPlugins,
+        values: [],
+      });
+      expect(actual).toStrictEqual({ isValid: false, err });
+    });
   });
 });

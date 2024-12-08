@@ -37,7 +37,7 @@ export const TestQueryConfig: StaticQueryConfig = {
       type: "boolean",
     },
     lastModified: {
-      sql: "u.lastModified",
+      sql: `u."lastModified"`,
       type: "date-time",
     },
     birthday: {

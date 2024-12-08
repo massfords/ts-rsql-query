@@ -111,6 +111,13 @@ export type RsqlOperatorPlugin = {
    * @returns The SQL code.
    */
   toSql(options: RsqlOperatorPluginToSqlOptions): string;
+  /**
+   * Pass your plugin's allowed values for validation.
+   * Use this if you plugin accepts other values than configured in the selector's `type`.
+   *
+   * @default No validation action.
+   */
+  readonly allowedValues?: string[];
 };
 
 /**

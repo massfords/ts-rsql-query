@@ -29,3 +29,10 @@ tc:
 	@printf "* Running tests with coverage.\n"
 	@printf "*******************************************************************************\n"
 	npm run test:coverage
+
+# Execute tests with live-DB.
+tl:
+	@printf "*******************************************************************************\n"
+	@printf "* Running tests with live-DB.\n"
+	@printf "*******************************************************************************\n"
+	npm run it

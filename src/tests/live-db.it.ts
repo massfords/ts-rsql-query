@@ -191,6 +191,54 @@ describe("runs the sql with a real db connection", () => {
         filter: "address=nullorempty=false;interest=nullorempty=true",
         rows: 0,
       },
+      {
+        filter: "birthday=null=true",
+        rows: 0,
+      },
+      {
+        filter: "birthday=null=false",
+        rows: 3,
+      },
+      {
+        filter: "active=null=true",
+        rows: 0,
+      },
+      {
+        filter: "active=null=false",
+        rows: 3,
+      },
+      {
+        filter: "tier=null=true",
+        rows: 0,
+      },
+      {
+        filter: "tier=null=false",
+        rows: 3,
+      },
+      {
+        filter: "tier=nullorempty=true",
+        rows: 0,
+      },
+      {
+        filter: "tier=nullorempty=false",
+        rows: 3,
+      },
+      {
+        filter: "points=null=true",
+        rows: 0,
+      },
+      {
+        filter: "points=null=false",
+        rows: 3,
+      },
+      {
+        filter: "lastModified=null=true",
+        rows: 0,
+      },
+      {
+        filter: "lastModified=null=false",
+        rows: 3,
+      },
     ];
     it.each(inputs)("$filter", async ({ filter, rows }) => {
       expect.hasAssertions();
@@ -207,7 +255,7 @@ describe("runs the sql with a real db connection", () => {
         },
         context,
       );
-      invariant(sql.isValid);
+      invariant(sql.isValid, !sql.isValid ? sql.err : undefined);
       expect(await db.manyOrNone(sql.sql, context.values)).toHaveLength(rows);
     });
   });

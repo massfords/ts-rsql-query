@@ -2,8 +2,9 @@ import { parseISO } from "date-fns";
 import invariant from "tiny-invariant";
 import type { ASTNode } from "ts-rsql";
 import type { SelectorConfig, SqlContext } from "../context";
+import { findPluginByOperator } from "../plugin";
 import { isAstNode, isComparisonNode } from "./ast";
-import { isKnownOperator, isPluginOperator } from "./operators";
+import { isKnownOperator } from "./operators";
 
 export const validate = (
   ast: ASTNode,
@@ -47,12 +48,8 @@ export const validate = (
     }
     return { isValid: true };
   } else if (isComparisonNode(ast)) {
-    if (
-      !(
-        isKnownOperator(ast.operator) ||
-        isPluginOperator(ast.operator, context.plugins)
-      )
-    ) {
+    const plugin = findPluginByOperator(ast.operator, context.plugins);
+    if (!(isKnownOperator(ast.operator) || plugin)) {
       return {
         isValid: false,
         err: `unknown operator: ${JSON.stringify(ast.operator)}`,
@@ -75,7 +72,17 @@ export const validate = (
         };
       }
       if (typeof selector === "object") {
-        if (!isValueValid(selector, value)) {
+        if (!isValueValid(selector, value, plugin?.allowedValues)) {
+          if (plugin?.allowedValues?.length) {
+            return {
+              isValid: false,
+              err: `bad value for "${ast.selector}": "${value}" (with "${
+                ast.operator
+              }" operator), must be one of ${JSON.stringify(
+                plugin.allowedValues,
+              )}`,
+            };
+          }
           if (selector.enum) {
             return {
               isValid: false,
@@ -98,7 +105,14 @@ export const validate = (
   return { isValid: false, err: `unknown node type: ${JSON.stringify(ast)}` };
 };
 
-const isValueValid = (selector: SelectorConfig, val: string): boolean => {
+const isValueValid = (
+  selector: SelectorConfig,
+  val: string,
+  allowedValues?: string[],
+): boolean => {
+  if (allowedValues?.length) {
+    return allowedValues.some((allowedValue) => val == allowedValue);
+  }
   if (selector.enum) {
     return selector.enum.some((allowedValue) => val == allowedValue);
   }

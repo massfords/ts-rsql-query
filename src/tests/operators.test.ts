@@ -1,8 +1,4 @@
-import {
-  isPluginOperator,
-  KnownOperator,
-  toSqlOperator,
-} from "../llb/operators";
+import { KnownOperator, toSqlOperator } from "../llb/operators";
 
 describe("operators tests", () => {
   describe("toSqlOperator", () => {
@@ -126,28 +122,5 @@ describe("operators tests", () => {
         expect(actual).toStrictEqual(sql);
       },
     );
-  });
-
-  describe("isPluginOperator", () => {
-    const operator = "=custom=";
-
-    it("should return false if plugins configuration is empty array", () => {
-      expect(isPluginOperator(operator, [])).toBe(false);
-    });
-
-    it("should return false if plugins configuration is undefined", () => {
-      expect(isPluginOperator(operator)).toBe(false);
-    });
-
-    it("should return false if plugins configuration is empty array", () => {
-      expect(
-        isPluginOperator(operator, [
-          {
-            operator,
-            toSql: jest.fn(),
-          },
-        ]),
-      ).toBe(true);
-    });
   });
 });
